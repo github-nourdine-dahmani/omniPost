@@ -1,0 +1,115 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./data.db"
+}
+
+model Post {
+  id          Int       @id @default(autoincrement())
+  title       String
+  slug        String    @unique
+  content     String
+  excerpt     String?
+  published   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  publishedAt DateTime?
+  author      Author?   @relation(fields: [authorId], references: [id])
+  authorId    Int?
+  category    Category? @relation(fields: [categoryId], references: [id])
+  categoryId  Int?
+  tags        Tag[]
+  images      Image[]
+}
+
+model Author {
+  id        Int      @id @default(autoincrement())
+  name      String
+  slug      String   @unique
+  email     String   @unique
+  bio       String?
+  avatar    String?
+  posts     Post[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Category {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  posts       Post[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Tag {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  slug      String   @unique
+  posts     Post[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Image {
+  id        Int      @id @default(autoincrement())
+  url       String
+  alt       String?
+  caption   String?
+  post      Post     @relation(fields: [postId], references: [id])
+  postId    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Article {
+  id               Int       @id @default(autoincrement())
+  slug             String    @unique
+  externalId       String?
+  title            String
+  text             String?
+  summary          String?
+  url              String?
+  image            String?
+  video            String?
+  author           String?
+  language         String?
+  category         String?
+  sourceCountry    String?
+  seedData         String?
+  published        Boolean   @default(false)
+  seedJob          Job?      @relation(fields: [seedJobId], references: [id])
+  seedJobId        Int?
+  refinedAt        DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  publishedAt      DateTime?
+}
+
+enum JobStatus {
+  READY
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+enum JobType {
+  FETCH_TOP_NEWS
+  REFINE_ARTICLE
+}
+
+model Job {
+  id        Int       @id @default(autoincrement())
+  type      JobType
+  params    String?
+  status    JobStatus
+  data      String?
+  articles  Article[]
+  createdAt DateTime  @default(now())
+}
