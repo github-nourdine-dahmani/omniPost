@@ -1,16 +1,13 @@
 import { ArticleSeed } from "@/types";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { deleteArticle} from "@/lib/article";
-import { CheckIcon, EyeIcon, TrashIcon, SaveIcon, PenIcon } from "lucide-react";
+import { UnplugIcon, EyeIcon, TrashIcon, SaveIcon, PenIcon } from "lucide-react";
 
-export default function ArticleSeedCard({ article, openPreviewDrawer, openEditDrawer, unsaveArticle, isSaved = false }: { article: ArticleSeed, openPreviewDrawer: () => void, openEditDrawer: () => void, unsaveArticle: () => void, isSaved: boolean }) {
+export default function ArticleSeedCard({ article, openReviewDrawer, openEditDrawer, unsaveArticle, isSaved = false }: { article: ArticleSeed, openReviewDrawer: () => void, openEditDrawer: () => void, unsaveArticle: () => void, isSaved: boolean }) {
     return (
-        <div className="relative">
+        <div className={isSaved ? "relative mb-2 p-0.5 bg-gradient-to-br from-purple-500 to-pink-500" : "relative mb-2"}>
 
             <article
                 key={article.externalId}
-                className="bg-white shadow overflow-hidden hover:bg-gray-50 transition-colors duration-200 cursor-pointer"
+                className="bg-white shadow-lg overflow-hidden hover:bg-gray-50 transition-colors duration-200 cursor-pointer"
             >
                 <div className="flex flex-row items-stretch m-8">
                     {article.image && (
@@ -44,18 +41,27 @@ export default function ArticleSeedCard({ article, openPreviewDrawer, openEditDr
                         </div>
 
                         <div className="flex items-center justify-end mt-4">
-                            {!isSaved && <Button variant="outline" size="sm" className="flex items-center" onClick={openPreviewDrawer}>
-                                Preview <EyeIcon className="w-4 h-4" />
-                            </Button>}
+                            {!isSaved &&
+                                <button onClick={openReviewDrawer} className="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-cyan-500 to-blue-500 group-hover:from-cyan-500 group-hover:to-blue-500 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-cyan-200 dark:focus:ring-cyan-800">
+                                    <span className="relative px-5 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-transparent group-hover:dark:bg-transparent">
+                                        Review <EyeIcon className="w-4 h-4 inline-block" />
+                                    </span>
+                                </button>}
 
-                            {isSaved && <Button variant="outline" size="sm" className="flex items-center bg-red-500 hover:bg-red-600 text-white hover:text-white"  onClick={unsaveArticle}>
-                                Unsave <TrashIcon className="w-4 h-4" />
-                            </Button>
+                            {isSaved &&
+                                <button onClick={unsaveArticle} className="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-pink-500 to-orange-400 group-hover:from-pink-500 group-hover:to-orange-400 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-pink-200 dark:focus:ring-pink-800">
+                                    <span className="relative px-5 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-transparent group-hover:dark:bg-transparent">
+                                        Offboard Article <UnplugIcon className="h-4 w-4 ml-1 inline-block" />
+                                    </span>
+                                </button>
                             }
 
-                            {isSaved && <Button variant="outline" size="sm" className="flex items-center bg-orange-500 hover:bg-orange-600 text-white hover:text-white" onClick={openEditDrawer}>
-                                Edit <PenIcon className="w-4 h-4" />
-                            </Button>
+                            {isSaved &&
+                                <button type="button" onClick={openEditDrawer} className="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-green-400 to-blue-600 group-hover:from-green-400 group-hover:to-blue-600 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-green-200 dark:focus:ring-green-800">
+                                    <span className="relative px-5 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-transparent group-hover:dark:bg-transparent">
+                                        Edit <PenIcon className="w-4 h-4 inline-block" />
+                                    </span>
+                                </button>
                             }
                         </div>
 

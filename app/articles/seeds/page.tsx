@@ -19,8 +19,8 @@ export default async function Articles() {
 
     const jobs = await getAllJobs(JobType.FETCH_TOP_NEWS);
 
-    console.log('>>>> jobs', jobs);
-    
+    // console.log('>>>> jobs', jobs);
+
     return (
         <>
             <PageClient jobs={jobs} />

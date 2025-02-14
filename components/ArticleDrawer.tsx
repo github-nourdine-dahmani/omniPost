@@ -281,7 +281,7 @@ export default function ArticleDrawer({ article, isOpen, onClose }: ArticleDrawe
                         <div className="sticky bottom-0 left-0 right-0 bg-white p-4 border-t shadow-md flex justify-end space-x-2 z-10">
                             <Button variant="outline" type="button" onClick={close}>Cancel</Button>
                             <Button variant="destructive" type="button" onClick={handleDelete}>Delete Article  <TrashIcon className="h-4 w-4 ml-1 inline-block" /></Button>
-                            <Button type="submit">Validate Article <CheckIcon className="h-4 w-4 ml-1 inline-block" /></Button>
+                            <Button type="submit">Save <CheckIcon className="h-4 w-4 ml-1 inline-block" /></Button>
                         </div>
                     </form>
                 </div>

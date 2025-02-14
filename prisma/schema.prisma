@@ -101,7 +101,7 @@ enum JobStatus {
 
 enum JobType {
   FETCH_TOP_NEWS
-  REFINE_ARTICLE
+  REFINE_ARTICLES
 }
 
 model Job {

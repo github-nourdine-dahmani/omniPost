@@ -21,11 +21,11 @@ async function call(data) {
             body: JSON.stringify(data),
         }
     );
-    const result = await response.json();
-    return result;
+    // const result = await response.json();
+    return response.json();
 }
 
-export async function main(query: String) {
+export async function main(query: string) {
     const response = await call({inputs: query, max_length: 130, min_length: 30, do_sample: false}).then((response) => {
         console.log(JSON.stringify(response, null, 2));
     });
@@ -33,9 +33,10 @@ export async function main(query: String) {
     return response;
 }
 
-export async function summarize(query: String, max_length: number = 500, min_length: number = 150, do_sample: boolean = false) : Promise<String> {
+export async function summarize(query: string, max_length: number = 500, min_length: number = 150, do_sample: boolean = false) : Promise<string> {
     const response = await call({inputs: query, max_length, min_length, do_sample}).then((response) => {
-        console.log(JSON.stringify(response, null, 2));
+        console.log(">>>> summarize ",JSON.stringify(response, null, 2));
+        return response;
     });
 
     return response;

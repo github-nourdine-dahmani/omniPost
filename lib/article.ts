@@ -8,6 +8,20 @@ import { summarize } from "@/lib/huggingface";
 
 const prisma = new PrismaClient();
 
+export async function refineArticles(force: boolean = false) {
+    console.log('>>>> refineArticles');
+    try {
+        const articles = await getAllArticles(true)
+
+        const refinedArticles = articles.slice(0, 1).filter(article => force || article.refinedAt === null).map(article => {
+            return refineArticle(article);
+        })
+
+        return refinedArticles;
+    } catch (error) {
+        console.log('>>>> error', error);
+    }
+}
 
 export async function refineArticle(article: Article) {
 
@@ -15,24 +29,31 @@ export async function refineArticle(article: Article) {
 
     try {
 
+        const articleSeedData = article.seedData ? JSON.parse(article.seedData) : null;
 
-        if (!article.text) return null;
+        if (!articleSeedData || !articleSeedData.title || !articleSeedData.text) {
+            throw new Error('Title and content are required');
+        }
 
-        const refinedText = await summarize(article.text);
-        const refinedTitle = await summarize(article.title);
-        const refinedSummary = article.summary ? await summarize(article.summary) : null;
+        const refinedTextData = await summarize(articleSeedData.text, 100, 30);
+        const refinedTitleData = await summarize(articleSeedData.title, 5000, 500);
+        // const refinedSummaryData = articleSeedData.summary ? await summarize(articleSeedData.summary) : null;
 
-        const refinedArticle = await prisma.post.update({
+        console.log('>>>> refinedTextData', refinedTextData[0].summary_text)
+        console.log('>>>> refinedTextData', refinedTitleData[0].summary_text)
+        console.log('>>>> refinedTextData JSON', JSON.parse(refinedTextData).summary_text)
+        console.log('>>>> refinedTitleData JSON', JSON.parse(refinedTitleData).summary_text)
+
+        const refinedArticle = await prisma.article.update({
             where: { id: article.id },
             data: {
-                title: refinedTitle,
-                content: refinedText,
-                summary: refinedSummary,
+                title: refinedTextData[0].summary_text,
+                text: refinedTextData[0].summary_text,
+                // summary: JSON.parse(refinedSummaryData).summary_text,
                 refinedAt: new Date(),
             },
         });
 
-        revalidatePath("/");
         revalidatePath("/articles/" + refinedArticle.slug);
 
         return refinedArticle;
@@ -46,18 +67,54 @@ export async function updateArticle(article: Article) {
     return await prisma.article.update({
         where: { id: article.id },
         data: {
-            title: article.title,
-            text: article.text,
-            summary: article.summary,
-            url: article.url
-            
+            ...article,
+            updatedAt: undefined
         }
     })
 }
 
+
+export async function resetArticle(article: Article) {
+    try {
+        console.log('Resetting article:', article.id);
+
+        const articleSeedData = article.seedData ? JSON.parse(article.seedData) : null;
+
+        if (!articleSeedData) {
+            throw new Error('No seed data available for this article');
+        }
+
+        console.log('Seed data:', articleSeedData.title);
+
+        const updatedArticle = await prisma.article.update({
+            where: { id: article.id },
+            data: {
+                title: articleSeedData.title,
+                // text: articleSeedData.text ?? null,
+                // summary: articleSeedData.summary ?? null,
+                // url: articleSeedData.url ?? null,
+                // image: articleSeedData.image ?? null,
+                // video: articleSeedData.video ?? null,
+                // author: articleSeedData.author ?? null,
+                // category: articleSeedData.category ?? null,
+                // language: articleSeedData.language ?? null,
+                // sourceCountry: articleSeedData.source_country ?? null,
+                // refinedAt: null, // Reset refinedAt timestamp
+            },
+        });
+
+        console.log('Article reset successfully:', updatedArticle.title);
+        // revalidatePath("/articles/seeds");
+        return updatedArticle;
+    } catch (error) {
+        console.error('Error resetting article:', error);
+        throw error; // Re-throw to allow caller to handle the error
+    }
+}
+
 // Cache getAllArticles function
 export const getAllArticles = cache(async (includeUnpublished = true, refined = false): Promise<Article[]> => {
-    
+
     return await prisma.article.findMany({
         where: includeUnpublished ? {} : { published: true },
         orderBy: {

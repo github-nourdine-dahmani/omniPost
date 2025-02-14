@@ -115,7 +115,7 @@ export async function collectTopNews(job: Job, limit: number = 10): Promise<Arti
 
     console.log('>>>> collectTopNews');
 
-    console.log('>>>> job data', job?.data);
+    // console.log('>>>> job data', job?.data);
 
     const data = job?.data ? JSON.parse(job.data) : undefined;
 
@@ -124,7 +124,7 @@ export async function collectTopNews(job: Job, limit: number = 10): Promise<Arti
         return [];
     }
 
-    console.log('>>>> data', data);
+    // console.log('>>>> data', data);
 
     const articles: ArticleSeed[] = data.top_news.slice(0, limit).flatMap((news: any) => {
         const parentExternalId = `${news.news[0].id}`
@@ -148,7 +148,7 @@ export async function collectTopNews(job: Job, limit: number = 10): Promise<Arti
     }
     );
 
-    console.log('>>>> articles', articles);
+    // console.log('>>>> articles', articles);
 
     return articles;
 }

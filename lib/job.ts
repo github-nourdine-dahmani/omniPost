@@ -2,6 +2,7 @@
 
 import { PrismaClient, Job, JobStatus, JobType } from "@prisma/client";
 import { fetchTopNews } from "@/lib/worldnewsapi";
+import { refineArticles } from "./article";
 
 const prisma = new PrismaClient();
 
@@ -19,14 +20,15 @@ const prisma = new PrismaClient();
 //     };
 // }
 
-export async function createJob(jobType: JobType): Promise<Job> {
+export async function createJob(jobType: JobType, force: boolean = false): Promise<Job> {
     const latestJob = await getLatestJob(jobType);
 
     if (latestJob && latestJob.status === JobStatus.PENDING) {
         throw new Error('Last job still pending');
     }
 
-    if (latestJob && 
+    if (!force &&
+        latestJob && 
         latestJob.status === JobStatus.COMPLETED && 
         latestJob.createdAt > new Date(Date.now() - 24 * 60 * 60 * 1000)) {
         throw new Error('Last completed job too recent');
@@ -54,8 +56,10 @@ export async function runJob(job: Job): Promise<Job> {
     try {
         switch (job.type) {
             case JobType.FETCH_TOP_NEWS:
-            case JobType.REFINE_ARTICLE:
                 data = await fetchTopNews();
+                break;
+            case JobType.REFINE_ARTICLES:
+                data = await refineArticles();
                 break;
             default:
                 throw new Error(`Invalid job type: ${job.type}`);
@@ -81,7 +85,8 @@ export async function updateJobStatus(job: Job, status: JobStatus, data: string 
 export async function getAllJobs(jobType: JobType): Promise<Job[]> {
     const results = await prisma.job.findMany({
         where: { type: jobType },
-        include: { articles: true }
+        include: { articles: true },
+        orderBy: { createdAt: 'desc' }
     });
 
     return results;
