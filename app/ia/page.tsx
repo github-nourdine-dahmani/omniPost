@@ -1,5 +1,4 @@
 // import { deepSeek, main } from "@/lib/openai";
-import { main } from "@/lib/huggingface";
 
 // Add metadata export
 export const metadata = {

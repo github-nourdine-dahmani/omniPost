@@ -1,10 +1,8 @@
 'use client'
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { Article, Job } from "@prisma/client";
-import { JobType } from "@prisma/client";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import ArticleSeedCard from "@/components/ArticleSeedCard";
 
@@ -13,8 +11,8 @@ import ArticleReviewDrawer from "@/components/ArticleReviewDrawer";
 
 import { ArticleSeed } from "@/types/article";
 import { collectTopNews, persistArticleSeed } from "@/lib/worldnewsapi";
-import { deleteArticle, resetArticle, updateArticle, refineArticle } from "@/lib/article";
-import { getAllJobs, getJob } from "@/lib/job";
+import { deleteArticle } from "@/lib/article";
+import { getJob } from "@/lib/job";
 
 // Custom hook for managing jobs and selected job
 const useJobManagement = (initialJobs: Job[]) => {
@@ -23,33 +21,20 @@ const useJobManagement = (initialJobs: Job[]) => {
         initialJobs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0]
     );
 
-    const refreshJobs = useCallback(async () => {
-        console.log('refreshJobs')
-        const updatedJobs = await getAllJobs(JobType.FETCH_TOP_NEWS);
-        setJobs(updatedJobs);
-
-        const previouslySelectedJob = updatedJobs.find(job => job.id === selectedJob.id);
-        const newSelectedJob = previouslySelectedJob ||
-            updatedJobs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
-        setSelectedJob(newSelectedJob);
-    }, [selectedJob]);
-
     const refreshSelectedJob = useCallback(async () => {
         console.log('refreshSelectedJob')
-        const updatedJobs = await getJob(selectedJob.id);
+        const updatedJob = await getJob(selectedJob.id);
 
-        if (!updatedJobs) {
+        if (!updatedJob) {
             return;
         }
 
-        // setJobs(updatedJobs);
+        setSelectedJob(updatedJob);
+        setJobs(prev => prev.map(job => job.id === updatedJob.id ? updatedJob : job));
 
-        // const previouslySelectedJob = updatedJobs.find(job => job.id === selectedJob.id);
-
-        setSelectedJob(updatedJobs);
     }, [selectedJob]);
 
-    return { jobs, selectedJob, setSelectedJob, refreshJobs, refreshSelectedJob };
+    return { jobs, selectedJob, setSelectedJob, refreshSelectedJob };
 };
 
 // Custom hook for managing article seeds and filtering
@@ -173,7 +158,7 @@ const FilterSection = ({
 );
 
 export default function ArticlesPageClient({ jobs: initialJobs }: { jobs: Job[] }) {
-    const { jobs, selectedJob, setSelectedJob, refreshJobs, refreshSelectedJob } = useJobManagement(initialJobs);
+    const { jobs, selectedJob, setSelectedJob, refreshSelectedJob } = useJobManagement(initialJobs);
     const {
         seedArticles,
         categories,
@@ -196,19 +181,22 @@ export default function ArticlesPageClient({ jobs: initialJobs }: { jobs: Job[] 
         setSelectedCategories([]);
     }, [setSelectedJob, setSelectedCategories]);
 
-    const openReviewDrawer = useCallback((articleSeed: ArticleSeed) => {
-        setArticleSeed(articleSeed);
-        setIsReviewDrawerOpen(true);
-    }, []);
+    const getArticleFromSeed = useCallback((articleSeed: ArticleSeed) => {
+        console.log('getArticleFromSeed');
+        const article = selectedJob.articles.find((a: Article) => a.externalId === articleSeed.externalId);
+        if (article) return article
+
+        return null
+    }, [selectedJob]);
 
     const openEditDrawer = useCallback((articleSeed: ArticleSeed) => {
-        console.log('openEditDrawer');
-        setArticleSeed(articleSeed);
-        const article = selectedJob.articles.find((a: Article) => a.externalId === articleSeed.externalId);
-        if (article) {
-            setArticle(article);
-            setIsEditDrawerOpen(true);
-        }
+        console.log('openEditDrawer', articleSeed);
+        const article = getArticleFromSeed(articleSeed)
+        if (!article) return
+
+        setArticle(article);
+        setIsEditDrawerOpen(true);
+
     }, [selectedJob]);
 
     const closeDrawers = useCallback(() => {
@@ -218,42 +206,22 @@ export default function ArticlesPageClient({ jobs: initialJobs }: { jobs: Job[] 
         setIsEditDrawerOpen(false);
     }, []);
 
-    const offboardArticleSeed = useCallback(async (articleSeed: ArticleSeed) => {
-        const article = selectedJob.articles.find((a: Article) => a.externalId === articleSeed.externalId);
-        if (article) {
-            await deleteArticle(article);
-            await refreshJobs();
-        }
-    }, [selectedJob, refreshJobs]);
+    const offboardArticle = useCallback(async (article: Article) => {
+        console.log("offboardArticle", article)
+
+        await deleteArticle(article);
+        await refreshSelectedJob();
+
+    }, [selectedJob]);
 
     const saveArticleSeed = useCallback(async (articleSeed: ArticleSeed) => {
-        const article = selectedJob.articles.find((a: Article) => a.externalId === articleSeed.externalId);
+        const article = getArticleFromSeed(articleSeed)
+        if (article) return
 
-        setArticleSeed(articleSeed);
-        if (!article) {
-            await persistArticleSeed(articleSeed);
-            await refreshJobs();
-            setArticle(article);
-        }
-    }, [selectedJob, refreshJobs]);
-
-    const resetOnboardedArticleToSeed = useCallback(async (article: Article) => {
-        const resetedArticle = await resetArticle(article);
+        await persistArticleSeed(articleSeed);
         await refreshSelectedJob();
-        setArticle(resetedArticle);
-    }, [refreshSelectedJob]);
 
-    const updateOnboardedArticle = useCallback(async (article: Article) => {
-        const updatedArticle = await updateArticle(article);
-        await refreshSelectedJob();
-        setArticle(updatedArticle);
-    }, [refreshSelectedJob]);
-
-    const refineOnboardedArticle = useCallback(async (article: Article) => {
-        const refinedArticle = await refineArticle(article);
-        await refreshSelectedJob();
-        setArticle(refinedArticle);
-    }, [refreshSelectedJob]);
+    }, [selectedJob]);
 
     return (
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex h-[calc(100vh-4rem)]">
@@ -283,11 +251,12 @@ export default function ArticlesPageClient({ jobs: initialJobs }: { jobs: Job[] 
 
                 <div className="grid">
                     {filteredArticles.map((articleSeed, index) => (
+
                         <ArticleSeedCard
                             key={index}
                             article={articleSeed}
-                            openReviewDrawer={() => openReviewDrawer(articleSeed)}
-                            unsaveArticle={() => offboardArticleSeed(articleSeed)}
+                            openReviewDrawer={() => { setArticleSeed(articleSeed); setIsReviewDrawerOpen(true) }}
+                            unsaveArticle={() => offboardArticle(getArticleFromSeed(articleSeed))}
                             openEditDrawer={() => openEditDrawer(articleSeed)}
                             isSaved={selectedJob.articles.some((a: Article) => a.externalId === articleSeed.externalId)}
                         />
@@ -304,10 +273,8 @@ export default function ArticlesPageClient({ jobs: initialJobs }: { jobs: Job[] 
 
             <ArticleEditDrawer
                 article={article}
-                offboardArticle={() => offboardArticleSeed(articleSeed)}
-                resetArticle={() => resetOnboardedArticleToSeed(article)}
-                refineArticle={() => refineOnboardedArticle(article)}
-                updateArticle={(articleToUpdate: Article) => updateOnboardedArticle(articleToUpdate)}
+                refreshSelectedJob={() => refreshSelectedJob()}
+                offboardArticle={() => offboardArticle(article)}
                 isOpen={isEditDrawerOpen}
                 onClose={closeDrawers}
             />

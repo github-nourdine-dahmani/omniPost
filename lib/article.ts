@@ -4,28 +4,28 @@
 import { PrismaClient, Article } from "@prisma/client";
 import { cache } from "react";
 import { revalidatePath } from "next/cache";
-import { summarize } from "@/lib/huggingface";
+import { refine, RefineOptions } from "@/lib/openai";
 
 const prisma = new PrismaClient();
 
-export async function refineArticles(force: boolean = false) {
-    console.log('>>>> refineArticles');
-    try {
-        const articles = await getAllArticles(true)
+// export async function refineArticles(force: boolean = false) {
+//     console.log('>>>> refineArticles');
+//     try {
+//         const articles = await getAllArticles(true)
 
-        const refinedArticles = articles.slice(0, 1).filter(article => force || article.refinedAt === null).map(article => {
-            return refineArticle(article);
-        })
+//         const refinedArticles = articles.slice(0, 1).filter(article => force || article.refinedAt === null).map(article => {
+//             return getRefineArticle(article);
+//         })
 
-        return refinedArticles;
-    } catch (error) {
-        console.log('>>>> error', error);
-    }
-}
+//         return refinedArticles;
+//     } catch (error) {
+//         console.log('>>>> error', error);
+//     }
+// }
 
-export async function refineArticle(article: Article) {
+export async function getRefineArticle(article: Article) {
 
-    console.log('>>>> refineArticle', article);
+    console.log('>>>> getRefineArticle', article);
 
     try {
 
@@ -35,28 +35,36 @@ export async function refineArticle(article: Article) {
             throw new Error('Title and content are required');
         }
 
-        const refinedTextData = await summarize(articleSeedData.text, 100, 30);
-        const refinedTitleData = await summarize(articleSeedData.title, 5000, 500);
-        // const refinedSummaryData = articleSeedData.summary ? await summarize(articleSeedData.summary) : null;
+        // const refinedTitleData = await refine(articleSeedData.text, RefineOptions.REWRITE);
+        // const refinedTextData = await refine(articleSeedData.text, RefineOptions.SUMMARIZE_3P);
+        // const refinedSummaryData = articleSeedData.summary ? await refine(articleSeedData.text, RefineOptions.SUMMARIZE_1S) : null;
 
-        console.log('>>>> refinedTextData', refinedTextData[0].summary_text)
-        console.log('>>>> refinedTextData', refinedTitleData[0].summary_text)
-        console.log('>>>> refinedTextData JSON', JSON.parse(refinedTextData).summary_text)
-        console.log('>>>> refinedTitleData JSON', JSON.parse(refinedTitleData).summary_text)
+        // const refinedArticle = {
+        //     ...article,
+        //     title: refinedTitleData,
+        //     text: refinedTextData,
+        //     summary: refinedSummaryData,
+        // }
 
-        const refinedArticle = await prisma.article.update({
-            where: { id: article.id },
-            data: {
-                title: refinedTextData[0].summary_text,
-                text: refinedTextData[0].summary_text,
-                // summary: JSON.parse(refinedSummaryData).summary_text,
-                refinedAt: new Date(),
-            },
-        });
+        // console.log('>>>> refinedTextData', refinedTextData)
+        // console.log('>>>> refinedTextData JSON', JSON.parse(refinedTextData).summary_text)
+        // console.log('>>>> refinedTextData', refinedTitleData[0].summary_text)
+        // console.log('>>>> refinedTitleData JSON', JSON.parse(refinedTitleData).summary_text)
 
-        revalidatePath("/articles/" + refinedArticle.slug);
+        // const refinedArticle = await prisma.article.update({
+        //     where: { id: article.id },
+        //     data: {
+        //         title: refinedTextData[0].summary_text,
+        //         text: refinedTextData[0].summary_text,
+        //         // summary: JSON.parse(refinedSummaryData).summary_text,
+        //         refinedAt: new Date(),
+        //     },
+        // });
+
+        // revalidatePath("/articles/" + refinedArticle.slug);
 
         return refinedArticle;
+
     } catch (error) {
         console.log('>>>> error', error);
     }
@@ -90,16 +98,16 @@ export async function resetArticle(article: Article) {
             where: { id: article.id },
             data: {
                 title: articleSeedData.title,
-                // text: articleSeedData.text ?? null,
-                // summary: articleSeedData.summary ?? null,
-                // url: articleSeedData.url ?? null,
-                // image: articleSeedData.image ?? null,
-                // video: articleSeedData.video ?? null,
-                // author: articleSeedData.author ?? null,
-                // category: articleSeedData.category ?? null,
-                // language: articleSeedData.language ?? null,
-                // sourceCountry: articleSeedData.source_country ?? null,
-                // refinedAt: null, // Reset refinedAt timestamp
+                text: articleSeedData.text ?? null,
+                summary: articleSeedData.summary ?? null,
+                url: articleSeedData.url ?? null,
+                image: articleSeedData.image ?? null,
+                video: articleSeedData.video ?? null,
+                author: articleSeedData.author ?? null,
+                category: articleSeedData.category ?? null,
+                language: articleSeedData.language ?? null,
+                sourceCountry: articleSeedData.source_country ?? null,
+                refinedAt: null, // Reset refinedAt timestamp
             },
         });
 
