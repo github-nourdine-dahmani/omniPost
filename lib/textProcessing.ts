@@ -11,9 +11,8 @@ type ProcessTextResponse = {
 
 const openai = new OpenAI({
     baseURL: "https://openrouter.ai/api/v1",
-    apiKey: "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",
+    apiKey: process.env.OPENROUTER_API_KEY,
 });
-
 
 export async function processText(
     text: string,
@@ -52,9 +51,9 @@ export async function processText(
                     content: fullPrompt,
                 }],
             // model: "cognitivecomputations/dolphin3.0-r1-mistral-24b:free",
-            // model: "google/gemini-2.0-flash-lite-preview-02-05:free", //Good !
+            model: "google/gemini-2.0-flash-lite-preview-02-05:free", //Good !
             // model: "deepseek/deepseek-r1:free", //bad
-            model: "meta-llama/llama-3.3-70b-instruct:free",
+            // model: "meta-llama/llama-3.3-70b-instruct:free",
         });
 
         console.log(">>>> completion: ", completion);

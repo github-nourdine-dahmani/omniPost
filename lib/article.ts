@@ -4,24 +4,25 @@
 import { PrismaClient, Article } from "@prisma/client";
 import { cache } from "react";
 import { revalidatePath } from "next/cache";
-import { refine, RefineOptions } from "@/lib/openai";
+import { processText } from "@/lib/textProcessing";
+import { TextProcessingType } from "@/types/textProcessing";
 
 const prisma = new PrismaClient();
 
-// export async function refineArticles(force: boolean = false) {
-//     console.log('>>>> refineArticles');
-//     try {
-//         const articles = await getAllArticles(true)
+export async function refineArticles(force: boolean = false) {
+    console.log('>>>> refineArticles');
+    try {
+        const articles = await getAllArticles(true)
 
-//         const refinedArticles = articles.slice(0, 1).filter(article => force || article.refinedAt === null).map(article => {
-//             return getRefineArticle(article);
-//         })
+        const refinedArticles = articles.slice(0, 1).filter(article => force || article.refinedAt === null).map(article => {
+            return getRefineArticle(article);
+        })
 
-//         return refinedArticles;
-//     } catch (error) {
-//         console.log('>>>> error', error);
-//     }
-// }
+        return refinedArticles;
+    } catch (error) {
+        console.log('>>>> error', error);
+    }
+}
 
 export async function getRefineArticle(article: Article) {
 
@@ -35,31 +36,24 @@ export async function getRefineArticle(article: Article) {
             throw new Error('Title and content are required');
         }
 
-        // const refinedTitleData = await refine(articleSeedData.text, RefineOptions.REWRITE);
-        // const refinedTextData = await refine(articleSeedData.text, RefineOptions.SUMMARIZE_3P);
-        // const refinedSummaryData = articleSeedData.summary ? await refine(articleSeedData.text, RefineOptions.SUMMARIZE_1S) : null;
-
-        // const refinedArticle = {
-        //     ...article,
-        //     title: refinedTitleData,
-        //     text: refinedTextData,
-        //     summary: refinedSummaryData,
-        // }
+        const refinedTitle = await processText(articleSeedData.text, TextProcessingType.REWRITE);
+        const refinedText = await processText(articleSeedData.text, TextProcessingType.SUMMARIZE_3P);
+        const refinedSummary = articleSeedData.summary ? await processText(articleSeedData.text, TextProcessingType.SUMMARIZE_1S) : null;
 
         // console.log('>>>> refinedTextData', refinedTextData)
         // console.log('>>>> refinedTextData JSON', JSON.parse(refinedTextData).summary_text)
         // console.log('>>>> refinedTextData', refinedTitleData[0].summary_text)
         // console.log('>>>> refinedTitleData JSON', JSON.parse(refinedTitleData).summary_text)
 
-        // const refinedArticle = await prisma.article.update({
-        //     where: { id: article.id },
-        //     data: {
-        //         title: refinedTextData[0].summary_text,
-        //         text: refinedTextData[0].summary_text,
-        //         // summary: JSON.parse(refinedSummaryData).summary_text,
-        //         refinedAt: new Date(),
-        //     },
-        // });
+        const refinedArticle = await prisma.article.update({
+            where: { id: article.id },
+            data: {
+                title: refinedTitle?.data || '',
+                text: refinedText.data,
+                summary: refinedSummary?.data,
+                refinedAt: new Date(),
+            },
+        });
 
         // revalidatePath("/articles/" + refinedArticle.slug);
 
