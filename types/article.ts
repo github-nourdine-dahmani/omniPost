@@ -1,7 +1,7 @@
-export interface ArticleSeed {
+export interface RawArticleSeed {
+    id: number | null;
     externalId: string | null;
-    parentExternalId: string | null;
-    title: string;
+    title: string | null;
     text: string | null;
     summary: string | null;
     language: string | null;
@@ -13,15 +13,6 @@ export interface ArticleSeed {
     author: string | null;
     seedJobId: number;
 }
-
-// export interface Article extends ArticleSeed {
-//     id: number;
-//     slug: string;
-//     published: boolean;
-//     createdAt: Date;
-//     updatedAt: Date;
-//     publishedAt: Date | null;
-// }
 
 export enum Category {
     Politics = 'Politics',

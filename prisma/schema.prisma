@@ -8,21 +8,39 @@ datasource db {
 }
 
 model Post {
-  id          Int       @id @default(autoincrement())
-  title       String
-  slug        String    @unique
-  content     String
-  excerpt     String?
-  published   Boolean   @default(false)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  publishedAt DateTime?
-  author      Author?   @relation(fields: [authorId], references: [id])
-  authorId    Int?
-  category    Category? @relation(fields: [categoryId], references: [id])
-  categoryId  Int?
-  tags        Tag[]
-  images      Image[]
+  id               Int             @id @default(autoincrement())
+  title            String?
+  slug             String          @unique
+  summary          String?
+  text             String?
+  published        Boolean         @default(false)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  publishedAt      DateTime?
+  author           Author?         @relation(fields: [authorId], references: [id])
+  authorId         Int?
+  category         Category?       @relation(fields: [categoryId], references: [id])
+  categoryId       Int?
+  tags             Tag[]
+  coverImage       String?
+  url              String?
+  language         String?
+  sourceCountry    String?
+  images           Image[]
+  status           PostStatus      @default(DRAFT)
+  transformation   Transformation? @relation("TransformationToPost", fields: [transformationId], references: [id])
+  transformationId Int?
+  articleSeed      ArticleSeed?    @relation("ArticleSeedToPost", fields: [articleSeedId], references: [id])
+  articleSeedId    Int?
+}
+
+enum PostStatus {
+  DRAFT
+  QUEUED
+  PROCESSING
+  COMPLETED
+  PUBLISHED
+  ARCHIVED
 }
 
 model Author {
@@ -38,22 +56,24 @@ model Author {
 }
 
 model Category {
-  id          Int      @id @default(autoincrement())
-  name        String   @unique
-  slug        String   @unique
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  slug        String    @unique
   description String?
   posts       Post[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  articles    Article[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
 model Tag {
-  id        Int      @id @default(autoincrement())
-  name      String   @unique
-  slug      String   @unique
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  slug      String    @unique
   posts     Post[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  articles  Article[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
 
 model Image {
@@ -67,33 +87,44 @@ model Image {
   updatedAt DateTime @updatedAt
 }
 
+model ArticleSeed {
+  id         Int       @id @default(autoincrement())
+  externalId String?
+  seedData   String?
+  seedJob    Job?      @relation(fields: [seedJobId], references: [id])
+  seedJobId  Int?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  articles   Article[] @relation("ArticleSeedToArticle")
+  posts      Post[]    @relation("ArticleSeedToPost")
+}
+
 model Article {
-  id               Int       @id @default(autoincrement())
-  slug             String    @unique
-  externalId       String?
-  title            String
-  text             String?
-  summary          String?
-  url              String?
-  image            String?
-  video            String?
-  author           String?
-  language         String?
-  category         String?
-  sourceCountry    String?
-  seedData         String?
-  published        Boolean   @default(false)
-  seedJob          Job?      @relation(fields: [seedJobId], references: [id])
-  seedJobId        Int?
-  refinedAt        DateTime?
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-  publishedAt      DateTime?
+  id            Int          @id @default(autoincrement())
+  slug          String       @unique
+  title         String
+  text          String?
+  summary       String?
+  url           String?
+  image         String?
+  video         String?
+  author        String?
+  language      String?
+  sourceCountry String?
+  category      Category?    @relation(fields: [categoryId], references: [id])
+  categoryId    Int?
+  tags          Tag[]
+  published     Boolean      @default(false)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  publishedAt   DateTime?
+  articleSeed   ArticleSeed? @relation("ArticleSeedToArticle", fields: [articleSeedId], references: [id])
+  articleSeedId Int?
 }
 
 enum JobStatus {
   READY
-  PENDING
+  QUEUED
   RUNNING
   COMPLETED
   FAILED
@@ -102,14 +133,23 @@ enum JobStatus {
 enum JobType {
   FETCH_TOP_NEWS
   REFINE_ARTICLES
+  TRANSFORM_ARTICLES
 }
 
 model Job {
-  id        Int       @id @default(autoincrement())
-  type      JobType
+  id           Int           @id @default(autoincrement())
+  type         JobType
+  params       String?
+  status       JobStatus
+  data         String?
+  createdAt    DateTime      @default(now())
+  articleSeeds ArticleSeed[]
+}
+
+model Transformation {
+  id        Int      @id @default(autoincrement())
+  name      String
   params    String?
-  status    JobStatus
-  data      String?
-  articles  Article[]
-  createdAt DateTime  @default(now())
+  createdAt DateTime @default(now())
+  posts     Post[]   @relation("TransformationToPost")
 }

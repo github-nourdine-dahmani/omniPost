@@ -23,7 +23,7 @@ const prisma = new PrismaClient();
 export async function createJob(jobType: JobType, force: boolean = false): Promise<Job> {
     const latestJob = await getLatestJob(jobType);
 
-    if (latestJob && latestJob.status === JobStatus.PENDING) {
+    if (latestJob && latestJob.status === JobStatus.QUEUED) {
         throw new Error('Last job still pending');
     }
 
@@ -85,7 +85,7 @@ export async function updateJobStatus(job: Job, status: JobStatus, data: string 
 export async function getAllJobs(jobType: JobType): Promise<Job[]> {
     const results = await prisma.job.findMany({
         where: { type: jobType },
-        include: { articles: true },
+        include: { articleSeeds: true },
         orderBy: { createdAt: 'desc' }
     });
 
@@ -95,7 +95,7 @@ export async function getAllJobs(jobType: JobType): Promise<Job[]> {
 export async function getJob(jobId: number): Promise<Job | null> {
     const result = await prisma.job.findUnique({
         where: { id: jobId },
-        include: { articles: true }
+        include: { articleSeeds: true }
     });
 
     return result;
@@ -111,7 +111,7 @@ export async function getLatestJob(
             type: jobType,
             status: jobStatus,
         },
-        include: { articles: true }
+        include: { articleSeeds: true }
     });
 
     console.log('getLatestJob result', result);

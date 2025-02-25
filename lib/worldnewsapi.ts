@@ -1,20 +1,21 @@
 "use server";
 
-import { ArticleSeed } from "@/types"
-import { PrismaClient, Job, Article } from "@prisma/client";
+import { RawArticleSeed } from "@/types";
+import { PrismaClient, Job, Article, ArticleSeed } from "@prisma/client";
 import { randomUUID } from "crypto";
-import slugify from 'slugify';
+import slugify from "slugify";
 
 const prisma = new PrismaClient();
 
 export async function fetchTopNews() {
-
-    console.log('>>>> fetchTopNews');
+    console.log(">>>> fetchTopNews");
 
     // const res = await fetch(`https://newsapi.org/v2/top-headlines?country=us&apiKey=${process.env.NEXT_PUBLIC_NEWSAPI_KEY}`)
     // const data = await res.json();
 
-    const res = await fetch(`https://api.worldnewsapi.com/top-news?source-country=fr&language=fr&api-key=${process.env.NEXT_PUBLIC_WORLDNEWSAPI_KEY}`)
+    const res = await fetch(
+        `https://api.worldnewsapi.com/top-news?source-country=fr&language=fr&api-key=${process.env.NEXT_PUBLIC_WORLDNEWSAPI_KEY}`
+    );
 
     // if(!res.ok) {
     //     console.log(res.message)
@@ -23,7 +24,7 @@ export async function fetchTopNews() {
 
     const data = await res.json();
 
-    console.log('fetched top news', data);
+    console.log("fetched top news", data);
 
     // const data = {
     //     "top_news": [
@@ -111,97 +112,134 @@ export async function fetchTopNews() {
     return data;
 }
 
-export async function collectTopNews(job: Job, limit: number = 10): Promise<ArticleSeed[]> {
-
-    console.log('>>>> collectTopNews');
+export async function collectRawArticleSeeds(
+    job: Job,
+    limit: number = 10
+): Promise<RawArticleSeed[]> {
+    console.log(">>>> collectRawArticleSeeds");
 
     // console.log('>>>> job data', job?.data);
 
     const data = job?.data ? JSON.parse(job.data) : undefined;
 
     if (!data) {
-        console.log('no data');
+        console.log("no data");
         return [];
     }
 
-    // console.log('>>>> data', data);
-
-    const articles: ArticleSeed[] = data.top_news.slice(0, limit).flatMap((news: any) => {
-        const parentExternalId = `${news.news[0].id}`
-        return news.news.slice(0, 1).map((data: any) => (
-            {
-                externalId: `${data.id}`,
-                parentExternalId: parentExternalId,
-                title: data.title,
-                image: data.image,
-                text: data.text,
-                summary: data.summary,
-                language: data.language,
-                url: data.url,
-                source_country: data.source_country,
-                category: data.category,
-                publishDate: data.publish_date ? new Date(data.publish_date) : undefined,
-                author: data.author,
-                seedJobId: job.id,
-            })
-        )
-    }
+    const databaseArticleSeeds = job.articleSeeds.map(
+        (articleSeed: ArticleSeed) =>
+            articleSeed.seedData
+                ? { ...JSON.parse(articleSeed.seedData), id: articleSeed.id }
+                : undefined
     );
+
+    // console.log(">>>> databaseArticleSeeds", databaseArticleSeeds);
+
+    const articles: RawArticleSeed[] = data.top_news
+        .slice(0, limit)
+        .flatMap((news: any) => {
+            // const parentExternalId = `${news.news[0].id}`
+            return news.news.slice(0, 1).map((data: any) => {
+                const existingArticleSeed = databaseArticleSeeds.find(
+                    (databaseArticleSeed: ArticleSeed) =>
+                        databaseArticleSeed.externalId === `${data.id}`
+                );
+
+                console.log(">>>> data.id", data.id);
+                console.log(">>>> existingArticleSeed", existingArticleSeed);
+
+                return existingArticleSeed
+                    ? {
+                          id: existingArticleSeed.id,
+                          externalId: `${existingArticleSeed.externalId}`,
+                          title: existingArticleSeed.title,
+                          image: existingArticleSeed.image,
+                          text: existingArticleSeed.text,
+                          summary: existingArticleSeed.summary,
+                          language: existingArticleSeed.language,
+                          url: existingArticleSeed.url,
+                          source_country: existingArticleSeed.source_country,
+                          category: existingArticleSeed.category,
+                          publishDate: existingArticleSeed.publish_date
+                              ? new Date(existingArticleSeed.publish_date)
+                              : undefined,
+                          author: existingArticleSeed.author,
+                          seedJobId: job.id,
+                      }
+                    : {
+                          id: null,
+                          externalId: `${data.id}`,
+                          title: data.title,
+                          image: data.image,
+                          text: data.text,
+                          summary: data.summary,
+                          language: data.language,
+                          url: data.url,
+                          source_country: data.source_country,
+                          category: data.category,
+                          publishDate: data.publish_date
+                              ? new Date(data.publish_date)
+                              : undefined,
+                          author: data.author,
+                          seedJobId: job.id,
+                      };
+            });
+        });
 
     // console.log('>>>> articles', articles);
 
     return articles;
 }
 
-export async function persistArticleSeeds(articleSeeds: ArticleSeed[]): Promise<Article[]> {
-    console.log('>>>> persistArticles');
+// export async function persistArticleSeeds(articleSeeds: ArticleSeed[]): Promise<Article[]> {
+//     console.log('>>>> persistArticles');
 
-    try {
+//     try {
 
-        const persistedArticles = await Promise.all(
-            articleSeeds.map(article => persistArticleSeed(article))
-        );
+//         const persistedArticles = await Promise.all(
+//             articleSeeds.map(article => persistArticleSeed(article))
+//         );
 
-        return persistedArticles;
+//         return persistedArticles;
 
-    } catch (error) {
-        console.log('>>>> error', error);
-        throw new Error('Failed to persist articles', { cause: error });
-    }
-}
+//     } catch (error) {
+//         console.log('>>>> error', error);
+//         throw new Error('Failed to persist articles', { cause: error });
+//     }
+// }
 
+// export async function persistArticleSeed(articleSeed: ArticleSeed): Promise<Article> {
 
-export async function persistArticleSeed(articleSeed: ArticleSeed): Promise<Article> {
+//     console.log('>>>> persistArticle', articleSeed);
 
-    console.log('>>>> persistArticle', articleSeed);
+//     try {
+//         const persistedArticle = await prisma.article.create({
+//             data: {
+//                 slug: slugify(articleSeed.title, { lower: true, strict: true })+'-' + randomUUID(),
+//                 externalId: articleSeed.externalId,
+//                 title: articleSeed.title,
+//                 image: articleSeed.image,
+//                 text: articleSeed.text,
+//                 summary: articleSeed.summary,
+//                 url: articleSeed.url,
+//                 language: articleSeed.language,
+//                 sourceCountry: articleSeed.source_country,
+//                 category: articleSeed.category,
+//                 author: articleSeed.author,
+//                 seedData: JSON.stringify(articleSeed),
+//                 publishedAt: articleSeed.publishDate,
+//                 seedJob: {
+//                     connect: {
+//                         id: articleSeed.seedJobId
+//                     }
+//                 }
+//             }
+//         })
 
-    try {
-        const persistedArticle = await prisma.article.create({
-            data: {
-                slug: slugify(articleSeed.title, { lower: true, strict: true })+'-' + randomUUID(),
-                externalId: articleSeed.externalId,
-                title: articleSeed.title,
-                image: articleSeed.image,
-                text: articleSeed.text,
-                summary: articleSeed.summary,
-                url: articleSeed.url,
-                language: articleSeed.language,
-                sourceCountry: articleSeed.source_country,
-                category: articleSeed.category,
-                author: articleSeed.author,
-                seedData: JSON.stringify(articleSeed),
-                publishedAt: articleSeed.publishDate,
-                seedJob: {
-                    connect: {
-                        id: articleSeed.seedJobId
-                    }
-                }
-            }
-        })
-
-        return persistedArticle;
-    } catch (error) {
-        console.log('>>>> error', error);
-        throw new Error('Failed to persist article', { cause: error });
-    }
-}
+//         return persistedArticle;
+//     } catch (error) {
+//         console.log('>>>> error', error);
+//         throw new Error('Failed to persist article', { cause: error });
+//     }
+// }
