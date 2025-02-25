@@ -1,7 +1,8 @@
 "use server";
 
-import { PrismaClient, Post,PostStatus, Transformation, ArticleSeed } from "@prisma/client";
+import { PrismaClient, Post, PostStatus, Transformation, ArticleSeed } from "@prisma/client";
 import { cache } from "react";
+import { PostWithTransformation } from '@/lib/prisma';
 import { revalidatePath } from "next/cache";
 import { CreatePostData, UpdatePostData, RawArticleSeed } from '@/types';
 import slugify from 'slugify';
@@ -56,121 +57,42 @@ export const getPostBySlug = cache(async (slug: string): Promise<Post | null> =>
 });
 
 // Delete a post
-export async function deletePost(id: number) {
+export async function deletePost(post: Post) {
     return prisma.post.delete({
-        where: { id },
+        where: { id: post.id },
     });
 }
 
 // Create a new post
-export async function createPost(articleSeed: RawArticleSeed, transformation?: Transformation) {
+export async function createPost(articleSeed: ArticleSeed, transformation?: Transformation): Promise<Post> {
 
-    // const seedData = JSON.parse(articleSeed?.seedData ?? '{}');
-    console.log('>>>> createPost', articleSeed, transformation);
+    const articleSeedData = JSON.parse(articleSeed?.seedData ?? '{}');
+
+    console.log('>>>> createPost', articleSeedData);
 
     return prisma.post.create({
         data: {
-            title: articleSeed.title ?? '',
-            slug: slugify(articleSeed.title ?? '', { lower: true, strict: true })+'-' + randomUUID(),
-            text: articleSeed.text ?? '',
-            summary: articleSeed.summary ?? '',
+            title: articleSeedData.title ?? '',
+            slug: slugify(articleSeedData.title ?? '', { lower: true, strict: true }) + '-' + randomUUID(),
+            text: articleSeedData.text ?? '',
+            summary: articleSeedData.summary ?? '',
             published: false,
-            coverImage: articleSeed.image ?? '',
-            url: articleSeed.url ?? '',
-            language: articleSeed.language ?? '',
-            sourceCountry: articleSeed.source_country ?? '',
+            coverImage: articleSeedData.image ?? '',
+            url: articleSeedData.url ?? '',
+            language: articleSeedData.language ?? '',
+            sourceCountry: articleSeedData.source_country ?? '',
             transformation: transformation ? {
                 connect: transformation,
             } : undefined,
-            articleSeed: articleSeed.id ? {
+            articleSeed: {
                 connect: {
                     id: articleSeed.id
                 }
-            } : undefined
-        }
+            }
+        },
+        include: { transformation: true }
     });
 }
-// // Create a new post
-// export async function createPost(articleSeed: ArticleSeed, transformation?: Transformation) {
-
-//     const seedData = JSON.parse(articleSeed?.seedData ?? '{}');
-//     // console.log('>>>> seedData', seedData);
-
-//     return prisma.post.create({
-//         data: {
-//             title: seedData.title ?? '',
-//             slug: slugify(seedData.title ?? '', { lower: true, strict: true })+'-' + randomUUID(),
-//             text: seedData.text ?? '',
-//             summary: seedData.summary ?? '',
-//             published: false,
-//             coverImage: seedData.image ?? '',
-//             transformation: transformation ? {
-//                 connect: transformation,
-//             } : undefined,
-//             articleSeed: {
-//                 connect: articleSeed
-//             }
-//         }
-//     });
-// }
-
-// export async function updatePost(formData: FormData) {
-
-//     const id = parseInt(formData.get('id')?.toString() || '0', 10);
-//     const title = formData.get('title')?.toString() || '';
-//     const text = formData.get('text')?.toString() || '';
-//     const summary = formData.get('summary')?.toString() || '';
-//     const authorId = formData.get('authorId')?.toString() || '';
-//     const categoryId = formData.get('categoryId')?.toString() || '';
-//     const published = formData.get('published')?.toString() === 'true';
-
-//     if (!title || !text) {
-//         throw new Error('Title and text are required');
-//     }
-
-//     const tagIds = formData.getAll('tags[]').map(id => parseInt(id.toString()));
-
-//     const post = await prisma.post.findUnique({
-//         where: { id },
-//         include: {
-//             tags: true,
-//         },
-//     });
-
-//     if (!post) {
-//         throw new Error('Post not found');
-//     }
-
-//     try {
-//         const updatedPost = await prisma.post.update({
-//             where: { id },
-//             data: {
-//                 title,
-//                 text,
-//                 author: { connect: { id: parseInt(authorId, 10) } },
-//                 category: { connect: { id: parseInt(categoryId, 10) } },
-//                 tags: {
-//                     connect: tagIds?.map(tagId => ({ id: tagId })) || [],
-//                     disconnect: post?.tags?.filter(tag => !tagIds?.some(newTagId => newTagId === tag.id))?.map(tag => ({ id: tag.id })) || [],
-//                 },
-//                 published,
-//                 // Set publishedAt only when the post is published for the first time
-//                 ...(published && !post.publishedAt ? { publishedAt: new Date() } : {}),
-//                 updatedAt: new Date(),
-//             },
-//         });
-
-//         revalidatePath("/");
-//         revalidatePath("/posts/" + updatedPost.slug);
-
-//         return updatedPost;
-//     } catch (error) {
-//         console.error('Error updating post:', error);
-//         throw new Error('Failed to update post');
-//     }
-// }
-
-
 
 export async function updatePost(
     post: Post

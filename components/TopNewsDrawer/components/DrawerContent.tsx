@@ -10,7 +10,7 @@ export const DrawerContent: React.FC<DrawerContentProps> = ({ isOpen, onClose, c
             <div className="p-6">
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-xl font-semibold">
-                        Edit Onboarded Article Seed
+                        Review Top News
                     </h2>
                     <button
                         onClick={onClose}

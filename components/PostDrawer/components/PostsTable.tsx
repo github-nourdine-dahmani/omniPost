@@ -5,7 +5,7 @@ interface PostsTableProps {
     posts: Post[];
     onEditPost: (post: Post) => void;
     onStatusUpdate: (post: Post, status: PostStatus) => void;
-    onDeletePost: (postId: string) => Promise<void>;
+    onDeletePost: (post: Post) => Promise<void>;
 }
 
 export function PostsTable({ posts, onEditPost, onStatusUpdate, onDeletePost }: PostsTableProps) {

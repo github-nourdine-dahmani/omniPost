@@ -4,10 +4,10 @@ import { useArticleSeedForm } from './hooks/useArticleSeedForm';
 import { DrawerOverlay } from './components/DrawerOverlay';
 import { DrawerContent } from './components/DrawerContent';
 import { ArticleSeedForm } from './components/ArticleSeedForm';
-import { RawArticleSeed } from '@/types';
+import { ArticleSeed } from '@prisma/client';
 
 type ArticleSeedDrawerProps = {
-    articleSeed: RawArticleSeed | null;
+    articleSeed: ArticleSeed | null;
     isOpen: boolean;
     onClose: () => void;
     refreshSelectedJob: () => void;
@@ -19,26 +19,25 @@ export default function ArticleSeedDrawer({
     onClose,
     refreshSelectedJob,
 }: ArticleSeedDrawerProps) {
-    const isOnboarded = articleSeed?.id !== null;
     const { handleSubmit, isLoading } = useArticleSeedForm(
         articleSeed,
         refreshSelectedJob,
-        onClose,
-        isOnboarded
+        onClose
     );
 
     return (
         <>
             <div className="relative z-10" aria-labelledby="slide-over-title" role="dialog" aria-modal="true">
                 <DrawerOverlay isOpen={isOpen} onClose={onClose} />
-                <DrawerContent isOnboarded={isOnboarded} isOpen={isOpen} onClose={onClose}>
-                    <ArticleSeedForm
-                        articleSeed={articleSeed}
-                        onSubmit={handleSubmit}
-                        onClose={onClose}
-                        isLoading={isLoading}
-                        isOnboarded={isOnboarded}
-                    />
+                <DrawerContent isOpen={isOpen} onClose={onClose}>
+                    {articleSeed && (
+                        <ArticleSeedForm
+                            articleSeed={articleSeed}
+                            onSubmit={handleSubmit}
+                            onClose={onClose}
+                            isLoading={isLoading}
+                        />
+                    )}
                 </DrawerContent>
             </div>
         </>

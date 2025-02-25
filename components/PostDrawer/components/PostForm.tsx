@@ -1,10 +1,10 @@
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Post } from "@/types";
+import { Post } from "@prisma/client";
 import { LinkIcon, CheckIcon } from "@heroicons/react/24/outline";
 
 type PostFormProps = {
-    post: Post | null;
+    post: Post;
     onSubmit: (formData: FormData) => Promise<void>;
     isLoading: boolean;
 };
@@ -20,7 +20,7 @@ export const PostForm: React.FC<PostFormProps> = ({
                 {post?.coverImage && (
                     <img
                         src={post.coverImage}
-                        alt={post.title}
+                        alt={post.title?? ""}
                         className="w-full h-auto mb-4"
                     />
                 )}

@@ -5,13 +5,10 @@ import { useEffect, useState } from "react";
 import { DrawerOverlay } from './components/DrawerOverlay';
 import { DrawerContent } from './components/DrawerContent';
 import { PostForm } from './components/PostForm';
-import { RawArticleSeed } from '@/types';
 
 import { Transformation, ArticleSeed, Post, PostStatus } from "@prisma/client";
 import { getAllTransformations } from '@/lib/transformations';
 import { createPost, getPostsByArticleSeed, deletePost, updatePost, updatePostStatus } from '@/lib/posts';
-import { getArticleSeed } from '@/lib/articleSeeds';
-import { UnplugIcon, EyeIcon, SaveIcon, PenIcon } from "lucide-react";
 import { usePostForm } from './hooks/usePostForm';
 
 import { Button } from "@/components/ui/button"
@@ -27,7 +24,7 @@ import { PostsTable } from './components/PostsTable';
 
 
 type PostDrawerProps = {
-    articleSeed: RawArticleSeed | null;
+    articleSeed: ArticleSeed | null;
     isOpen: boolean;
     onClose: () => void;
 };
@@ -39,10 +36,10 @@ export default function PostDrawer({
     onClose,
 }: PostDrawerProps) {
     const [transformations, setTransformations] = useState<Transformation[]>([]);
-    const [posts, setPosts] = useState<Post[]>([]);
-    const [post, setPost] = useState<Post | null>(null);
+    const [posts, setPosts] = useState<Post[]>(articleSeed?.posts || []);
+    const [selectedPost, setSelectedPost] = useState<Post | null>(null);
 
-    const { handleSubmit, isLoading } = usePostForm(post);
+    const { handleSubmit, isLoading } = usePostForm(selectedPost);
 
     const fetchTransformations = async () => {
         const collectedTransformations = await getAllTransformations();
@@ -60,31 +57,32 @@ export default function PostDrawer({
 
     useEffect(() => {
         console.log("useEffect/PostDrawer");
-        fetchTransformations();
-        fetchPosts();
-    }, [articleSeed?.id]);
+        isOpen && fetchTransformations();
+        isOpen && fetchPosts();
+    }, [articleSeed?.id, isOpen]);
 
     const handleCloseDrawer = () => {
-        setPost(null);
+        setSelectedPost(null);
         setPosts([]);
         onClose();
     }
 
     const handleStatusUpdate = async (post: Post, status: PostStatus) => {
         await updatePostStatus(post, status);
-        await fetchPosts();
+        setPosts(posts.map((p) => p.id === post.id ? { ...p, status: status } : p));
     };
 
-    const handleDeletePost = async (postId: string) => {
-        await deletePost(postId);
-        await fetchPosts();
+    const handleDeletePost = async (post: Post) => {
+        await deletePost(post);
+        setPosts(posts.filter((p) => p.id !== post.id));
     };
 
     const handleCreatePost = async (transformation: Transformation) => {
-        if (articleSeed) {
-            await createPost(articleSeed, transformation);
-            await fetchPosts();
-        }
+        const createdPost = await createPost(articleSeed, transformation);
+        console.log('>>>> createdPost', createdPost);
+        setSelectedPost(createdPost);
+        setPosts( prev => [...prev, createdPost]);
+        console.log('>>>> posts', posts);
     };
 
     return (
@@ -93,7 +91,7 @@ export default function PostDrawer({
             <DrawerContent isOpen={isOpen} onClose={handleCloseDrawer}>
                 <div className="flex h-screen w-full">
                     <div className="w-1/2 h-full p-4 overflow-y-auto border-r">
-                        <PostForm post={post} onSubmit={handleSubmit} isLoading={isLoading} />
+                        {selectedPost && <PostForm post={selectedPost} onSubmit={handleSubmit} isLoading={isLoading} />}
                     </div>
                     <div className="w-1/2 h-full p-4 overflow-y-auto">
                         <DropdownMenu>
@@ -104,8 +102,8 @@ export default function PostDrawer({
                                 <DropdownMenuLabel>Select Post type</DropdownMenuLabel>
                                 <DropdownMenuSeparator />
                                 {transformations.map((transformation) => (
-                                    <DropdownMenuItem 
-                                        key={transformation.id} 
+                                    <DropdownMenuItem
+                                        key={transformation.id}
                                         onClick={() => handleCreatePost(transformation)}
                                     >
                                         {transformation.name}
@@ -114,9 +112,9 @@ export default function PostDrawer({
                             </DropdownMenuContent>
                         </DropdownMenu>
 
-                        <PostsTable 
-                            posts={posts}
-                            onEditPost={setPost}
+                        <PostsTable
+                            posts={posts || []}
+                            onEditPost={setSelectedPost}
                             onStatusUpdate={handleStatusUpdate}
                             onDeletePost={handleDeletePost}
                         />

@@ -1,6 +1,6 @@
 "use server";
 
-import { RawArticleSeed } from "@/types/article";
+import { TopNews } from "@/types";
 import { PrismaClient, Job, Article, ArticleSeed } from "@prisma/client";
 import { randomUUID } from "crypto";
 import slugify from 'slugify';
@@ -48,23 +48,7 @@ export async function collectArticleSeeds(job: Job, limit: number = 10): Promise
     return articles;
 }
 
-export async function createArticleSeeds(jobArticleSeeds: RawArticleSeed[]): Promise<ArticleSeed[]> {
-    console.log('>>>> createArticleSeeds');
-
-    try {
-        const persistedArticles = await Promise.all(
-            jobArticleSeeds.map(jobArticleSeed => createArticleSeed(jobArticleSeed))
-        );
-
-        return persistedArticles;
-
-    } catch (error) {
-        console.log('>>>> error', error);
-        throw new Error('Failed to persist articles', { cause: error });
-    }
-}
-
-export async function createArticleSeed(articleSeed: RawArticleSeed): Promise<ArticleSeed> {
+export async function createArticleSeed(topNews: TopNews): Promise<ArticleSeed> {
 
     // console.log('>>>> createArticleSeed', articleSeed);
 
@@ -72,11 +56,11 @@ export async function createArticleSeed(articleSeed: RawArticleSeed): Promise<Ar
 
         const persistedArticle = await prisma.articleSeed.create({
             data: {
-                externalId: articleSeed.externalId,
-                seedData: JSON.stringify(articleSeed),
+                externalId: topNews.externalId,
+                seedData: JSON.stringify(topNews),
                 seedJob: {
                     connect: {
-                        id: articleSeed.seedJobId
+                        id: topNews.seedJobId
                     }
                 }
             }
@@ -91,7 +75,7 @@ export async function createArticleSeed(articleSeed: RawArticleSeed): Promise<Ar
 
 
 export async function editArticleSeed(
-    articleSeed: RawArticleSeed
+    articleSeed: ArticleSeed
 ): Promise<ArticleSeed> {
     // console.log('>>>> createArticleSeed', articleSeed);
 
@@ -99,7 +83,7 @@ export async function editArticleSeed(
         const persistedArticle = await prisma.articleSeed.update({
             where: { id: articleSeed.id },
             data: {
-                seedData: JSON.stringify(articleSeed),
+                seedData: articleSeed.seedData,
             },
         });
 
@@ -110,20 +94,10 @@ export async function editArticleSeed(
     }
 }
 
-export async function deleteArticleSeed(articleSeed: RawArticleSeed) {
-    console.log('>>>> deleteArticleSeed', articleSeed.externalId);
-
-    const articleSeedToDelete = await prisma.articleSeed.findFirst({
-        where: { externalId: articleSeed.externalId },
-    })
-
-    if (!articleSeedToDelete) {
-        throw new Error(
-            `Article seed with externalId ${articleSeed.externalId} not found`
-        );
-    }
+export async function deleteArticleSeed(articleSeed: ArticleSeed) {
+    console.log('>>>> deleteArticleSeed', articleSeed);
 
     return await prisma.articleSeed.delete({
-        where: { id: articleSeedToDelete.id },
+        where: { id: articleSeed.id },
     });
 }

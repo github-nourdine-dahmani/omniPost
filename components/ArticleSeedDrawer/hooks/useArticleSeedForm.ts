@@ -1,31 +1,35 @@
 import { useState } from 'react';
-import { RawArticleSeed } from '@/types';
-import { createArticleSeed, editArticleSeed } from '@/lib/articleSeeds';
+import { ArticleSeed } from '@prisma/client';
+import { editArticleSeed } from '@/lib/articleSeeds';
 
 export const useArticleSeedForm = (
-    articleSeed: RawArticleSeed | null,
+    articleSeed: ArticleSeed | null,
     refreshSelectedJob: () => void,
     onClose: () => void,
-    isSaved: boolean
 ) => {
     const [isLoading, setIsLoading] = useState(false);
 
     const handleSubmit = async (formData: FormData) => {
         if (!articleSeed) return;
 
-        const articleSeedToOnboard: RawArticleSeed = {
+        const originalSeedData = JSON.parse(articleSeed.seedData ?? '{}');
+
+        const articleSeedToPersist: ArticleSeed = {
             ...articleSeed,
-            text: formData.get("text")?.toString() || "",
-            summary: formData.get("summary")?.toString() || "",
-            title: formData.get("title")?.toString() || "",
-            url: formData.get("url")?.toString() || "",
+            seedData: JSON.stringify({
+                ...originalSeedData,
+                text: formData.get("text")?.toString() || "",
+                summary: formData.get("summary")?.toString() || "",
+                title: formData.get("title")?.toString() || "",
+                url: formData.get("url")?.toString() || "",
+            }),
         };
+
+        console.log('>>>> articleSeedToPersist', articleSeedToPersist)
 
         try {
             setIsLoading(true);
-            const persistMethod = isSaved ? editArticleSeed : createArticleSeed;
-
-            await persistMethod(articleSeedToOnboard);
+            await editArticleSeed(articleSeedToPersist);
             refreshSelectedJob();
             onClose();
         } catch (error) {

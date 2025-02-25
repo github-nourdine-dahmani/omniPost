@@ -1,6 +1,6 @@
 "use server";
 
-import { RawArticleSeed } from "@/types";
+import { RawArticleSeed, TopNews } from "@/types";
 import { PrismaClient, Job, Article, ArticleSeed } from "@prisma/client";
 import { randomUUID } from "crypto";
 import slugify from "slugify";
@@ -24,7 +24,7 @@ export async function fetchTopNews() {
 
     const data = await res.json();
 
-    console.log("fetched top news", data);
+    // console.log("fetched top news", data);
 
     // const data = {
     //     "top_news": [
@@ -116,7 +116,7 @@ export async function collectRawArticleSeeds(
     job: Job,
     limit: number = 10
 ): Promise<RawArticleSeed[]> {
-    console.log(">>>> collectRawArticleSeeds");
+    // console.log(">>>> collectRawArticleSeeds");
 
     // console.log('>>>> job data', job?.data);
 
@@ -146,8 +146,8 @@ export async function collectRawArticleSeeds(
                         databaseArticleSeed.externalId === `${data.id}`
                 );
 
-                console.log(">>>> data.id", data.id);
-                console.log(">>>> existingArticleSeed", existingArticleSeed);
+                // console.log(">>>> data.id", data.id);
+                // console.log(">>>> existingArticleSeed", existingArticleSeed);
 
                 return existingArticleSeed
                     ? {
@@ -190,6 +190,69 @@ export async function collectRawArticleSeeds(
     // console.log('>>>> articles', articles);
 
     return articles;
+}
+
+export async function collectTopNews(
+    job: Job,
+    limit: number = 10
+): Promise<TopNews[]> {
+    console.log(">>>> collectTopNews");
+
+    // console.log('>>>> job data', job?.data);
+
+    const data = job?.data ? JSON.parse(job.data) : undefined;
+
+    if (!data) {
+        console.log("no data");
+        return [];
+    }
+
+    const databaseArticleSeeds = job.articleSeeds.map(
+        (articleSeed: ArticleSeed) =>
+            articleSeed.seedData
+                ? { ...JSON.parse(articleSeed.seedData), id: articleSeed.id }
+                : undefined
+    );
+
+    // console.log(">>>> databaseArticleSeeds", databaseArticleSeeds);
+
+    const topNews: TopNews[] = data.top_news
+        .slice(0, limit)
+        .flatMap((news: any) => {
+            // const parentExternalId = `${news.news[0].id}`
+            return news.news.slice(0, 1).map((data: any) => {
+
+                const articleSeed = job.articleSeeds.find(
+                    (articleSeed: ArticleSeed) =>
+                        articleSeed.externalId === `${data.id}`
+                );
+
+                // console.log(">>>> data.id", data.id);
+                // console.log(">>>> articleSeed", articleSeed);
+
+                return {
+                          externalId: `${data.id}`,
+                          title: data.title,
+                          image: data.image,
+                          text: data.text,
+                          summary: data.summary,
+                          language: data.language,
+                          url: data.url,
+                          source_country: data.source_country,
+                          category: data.category,
+                          publishDate: data.publish_date
+                              ? new Date(data.publish_date)
+                              : undefined,
+                          author: data.author,
+                          seedJobId: job.id,
+                          articleSeed: articleSeed
+                      };
+            });
+        });
+
+    // console.log('>>>> topNews', topNews);
+
+    return topNews;
 }
 
 // export async function persistArticleSeeds(articleSeeds: ArticleSeed[]): Promise<Article[]> {

@@ -95,7 +95,7 @@ export default function ArticleEditDrawer({
     const handleResetToSeed = () => {
         if (article?.seedData) {
             try {
-                const seedData = JSON.parse(article.seedData);
+                const seedData = JSON.parse(article?.seedData ?? '{}');
                 resetFormData(seedData);
             } catch (error) {
                 console.error('Error parsing seed data:', error);
@@ -112,7 +112,7 @@ export default function ArticleEditDrawer({
                 // const refinedArticle = getRefineArticle(article)
 
                 // console.log(refinedArticle)
-                const seedData = JSON.parse(article.seedData);
+                const seedData = JSON.parse(article?.seedData ?? '{}');
 
                 // const processedText = processText(seedData.text, TextProcessingType.SUMMARIZE_3P);
                 // const refinedArticle = {...article, text: data}    

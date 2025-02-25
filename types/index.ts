@@ -1,4 +1,5 @@
 export type { RawArticleSeed } from "@/types/article";
+export type { TopNews } from "@/types/topNews";
 // export type { Article, ArticleSeed } from '@/types/article';
 // export type { Job } from '@/types/job';
 // export { JobStatus, JobType } from '@/types/job';

@@ -13,7 +13,7 @@ interface PostActionButtonsProps {
     post: Post;
     onEdit: () => void;
     onStatusUpdate: (post: Post, status: PostStatus) => void;
-    onDelete: (postId: string) => Promise<void>;
+    onDelete: (post: Post) => Promise<void>;
 }
 
 export function PostActionButtons({ post, onEdit, onStatusUpdate, onDelete }: PostActionButtonsProps) {
@@ -48,7 +48,7 @@ export function PostActionButtons({ post, onEdit, onStatusUpdate, onDelete }: Po
                         Archive
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => onDelete(post.id)}>
+                    <DropdownMenuItem onClick={() => onDelete(post)}>
                         Delete
                     </DropdownMenuItem>
                 </DropdownMenuContent>

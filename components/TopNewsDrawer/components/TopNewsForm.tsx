@@ -1,32 +1,29 @@
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ArticleSeed } from "@prisma/client";
-import { LinkIcon, CheckIcon } from "@heroicons/react/24/outline";
+import { TopNews } from "@/types";
+import { LinkIcon } from "@heroicons/react/24/outline";
 import { PlugIcon } from "lucide-react";
 
-type ArticleSeedFormProps = {
-    articleSeed: ArticleSeed;
+type TopNewsFormProps = {
+    topNews: TopNews;
     onSubmit: (formData: FormData) => Promise<void>;
     onClose: () => void;
     isLoading: boolean;
 };
 
-export const ArticleSeedForm: React.FC<ArticleSeedFormProps> = ({
-    articleSeed,
+export const TopNewsForm: React.FC<TopNewsFormProps> = ({
+    topNews,
     onSubmit,
     onClose,
     isLoading,
 }) => {
-
-    const articleSeedData = JSON.parse(articleSeed?.seedData ?? '{}');
-
     return (
         <form action={onSubmit}>
             <div className="mb-4">
-                {articleSeedData?.image && (
+                {topNews?.image && (
                     <img
-                        src={articleSeedData.image}
-                        alt={articleSeedData.title}
+                        src={topNews.image}
+                        alt={topNews.title ?? ""}
                         className="w-full h-auto mb-4"
                     />
                 )}
@@ -41,7 +38,7 @@ export const ArticleSeedForm: React.FC<ArticleSeedFormProps> = ({
                     id="image"
                     name="image"
                     placeholder="Image URL"
-                    defaultValue={articleSeedData?.image ?? ""}
+                    defaultValue={topNews?.image ?? ""}
                 />
             </div>
 
@@ -58,7 +55,7 @@ export const ArticleSeedForm: React.FC<ArticleSeedFormProps> = ({
                     id="title"
                     name="title"
                     placeholder="Title"
-                    defaultValue={articleSeedData?.title ?? ""}
+                    defaultValue={topNews?.title ?? ""}
                 />
             </div>
 
@@ -73,7 +70,7 @@ export const ArticleSeedForm: React.FC<ArticleSeedFormProps> = ({
                     id="summary"
                     name="summary"
                     placeholder="Summary"
-                    defaultValue={articleSeedData?.summary ?? ""}
+                    defaultValue={topNews?.summary ?? ""}
                     rows={5}
                 />
             </div>
@@ -89,7 +86,7 @@ export const ArticleSeedForm: React.FC<ArticleSeedFormProps> = ({
                     id="text"
                     name="text"
                     placeholder="Text"
-                    defaultValue={articleSeedData?.text ?? ""}
+                    defaultValue={topNews?.text ?? ""}
                     rows={20}
                 />
             </div>
@@ -99,8 +96,8 @@ export const ArticleSeedForm: React.FC<ArticleSeedFormProps> = ({
                     htmlFor="url"
                     className="block text-sm font-medium text-gray-700 cursor-pointer"
                     onClick={() =>
-                        articleSeedData?.url &&
-                        window.open(articleSeedData.url)
+                        topNews?.url &&
+                        window.open(topNews.url)
                     }
                 >
                     <span className="inline-block align-middle">
@@ -113,7 +110,7 @@ export const ArticleSeedForm: React.FC<ArticleSeedFormProps> = ({
                     id="url"
                     name="url"
                     placeholder="Seed URL"
-                    defaultValue={articleSeedData?.url ?? ""}
+                    defaultValue={topNews?.url ?? ""}
                 />
             </div>
 
@@ -134,9 +131,10 @@ export const ArticleSeedForm: React.FC<ArticleSeedFormProps> = ({
                     className="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-green-400 to-blue-600 group-hover:from-green-400 group-hover:to-blue-600 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-green-200 dark:focus:ring-green-800"
                 >
                     <span className="relative px-5 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-transparent group-hover:dark:bg-transparent">
-                        {isLoading ? "Saving..." : "Save"}
-                        <CheckIcon className="h-4 w-4 ml-1 inline-block" />
+                        {isLoading ? "Onboarding..." : "Onboard"}
+                        <PlugIcon className="h-4 w-4 ml-1 inline-block" />
                     </span>
+
                 </button>
             </div>
         </form>

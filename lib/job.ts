@@ -85,7 +85,11 @@ export async function updateJobStatus(job: Job, status: JobStatus, data: string 
 export async function getAllJobs(jobType: JobType): Promise<Job[]> {
     const results = await prisma.job.findMany({
         where: { type: jobType },
-        include: { articleSeeds: true },
+        include: { articleSeeds: {
+            include: {
+                posts: true
+            }
+        } },
         orderBy: { createdAt: 'desc' }
     });
 
