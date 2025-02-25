@@ -28,8 +28,8 @@ export async function createJob(jobType: JobType, force: boolean = false): Promi
     }
 
     if (!force &&
-        latestJob && 
-        latestJob.status === JobStatus.COMPLETED && 
+        latestJob &&
+        latestJob.status === JobStatus.COMPLETED &&
         latestJob.createdAt > new Date(Date.now() - 24 * 60 * 60 * 1000)) {
         throw new Error('Last completed job too recent');
     }
@@ -47,7 +47,7 @@ export async function createJob(jobType: JobType, force: boolean = false): Promi
 export async function runJob(job: Job): Promise<Job> {
     if (job.status !== JobStatus.READY) {
         throw new Error('Job not ready');
-    }   
+    }
 
     await updateJobStatus(job, JobStatus.RUNNING);
 
@@ -85,11 +85,17 @@ export async function updateJobStatus(job: Job, status: JobStatus, data: string 
 export async function getAllJobs(jobType: JobType): Promise<Job[]> {
     const results = await prisma.job.findMany({
         where: { type: jobType },
-        include: { articleSeeds: {
-            include: {
-                posts: true
+        include: {
+            articleSeeds: {
+                include: {
+                    posts: {
+                        include: {
+                            transformation: true
+                        }
+                    }
+                }
             }
-        } },
+        },
         orderBy: { createdAt: 'desc' }
     });
 
@@ -106,7 +112,7 @@ export async function getJob(jobId: number): Promise<Job | null> {
 }
 
 export async function getLatestJob(
-    jobType: JobType, 
+    jobType: JobType,
     jobStatus: JobStatus = JobStatus.COMPLETED
 ): Promise<Job | null> {
     console.log('getLatestJob', jobType, jobStatus);

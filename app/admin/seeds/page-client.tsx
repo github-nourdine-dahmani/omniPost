@@ -11,10 +11,10 @@ import { useArticleSeedDrawer } from "@/components/ArticleSeedDrawer/hooks/useAr
 import { useTopNewsDrawer } from "@/components/TopNewsDrawer/hooks/useTopNewsDrawer";
 import { usePostDrawer } from "@/components/PostDrawer/hooks/usePostDrawer";
 import { FilterSection } from "./components/FilterSection";
-import { useJobManagement } from "./hooks/useJobManagement";
+import { useJobManagement } from "@/hooks/useJobManagement";
 import { TopNews } from "@/types";
 import { deleteArticleSeed } from "@/lib/articleSeeds";
-import { useTopNewsManagement } from "./hooks/useTopNewsManagement";
+import { useTopNewsManagement } from "@/hooks/useTopNewsManagement";
 
 export default function ArticlesPageClient({ jobs: initialJobs }: { jobs: Job[] }) {
     const { jobs, selectedJob, setSelectedJob, refreshSelectedJob } = useJobManagement(initialJobs);
@@ -59,7 +59,7 @@ export default function ArticlesPageClient({ jobs: initialJobs }: { jobs: Job[] 
             <div className="w-3/4 pl-4 overflow-y-auto">
                 <div className="p-2 sticky top-0 bg-white z-10">
                     <h1 className="text-3xl font-bold text-gray-900">
-                        Latest Headlines
+                        Latest Top News
                     </h1>
                     <ToggleGroup
                         type="single"
@@ -101,6 +101,7 @@ export default function ArticlesPageClient({ jobs: initialJobs }: { jobs: Job[] 
                                     articleSeed={articleSeed}
                                     openArticleSeedDrawer={() => {
                                         setSelectedArticleSeed(articleSeed);
+                                        setSelectedTopNews(topNews);
                                         openArticleSeedDrawer();
                                     }}
                                     openPostDrawer={() => {
@@ -118,6 +119,7 @@ export default function ArticlesPageClient({ jobs: initialJobs }: { jobs: Job[] 
 
             <ArticleSeedDrawer
                 articleSeed={selectedArticleSeed}
+                topNews={selectedTopNews}
                 isOpen={isArticleSeedDrawerOpen}
                 onClose={closeArticleSeedDrawer}
                 refreshSelectedJob={() => refreshSelectedJob()}

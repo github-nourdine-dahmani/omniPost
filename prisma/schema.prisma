@@ -61,7 +61,6 @@ model Category {
   slug        String    @unique
   description String?
   posts       Post[]
-  articles    Article[]
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 }
@@ -71,7 +70,6 @@ model Tag {
   name      String    @unique
   slug      String    @unique
   posts     Post[]
-  articles  Article[]
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 }
@@ -95,31 +93,7 @@ model ArticleSeed {
   seedJobId  Int?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
-  articles   Article[] @relation("ArticleSeedToArticle")
   posts      Post[]    @relation("ArticleSeedToPost")
-}
-
-model Article {
-  id            Int          @id @default(autoincrement())
-  slug          String       @unique
-  title         String
-  text          String?
-  summary       String?
-  url           String?
-  image         String?
-  video         String?
-  author        String?
-  language      String?
-  sourceCountry String?
-  category      Category?    @relation(fields: [categoryId], references: [id])
-  categoryId    Int?
-  tags          Tag[]
-  published     Boolean      @default(false)
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-  publishedAt   DateTime?
-  articleSeed   ArticleSeed? @relation("ArticleSeedToArticle", fields: [articleSeedId], references: [id])
-  articleSeedId Int?
 }
 
 enum JobStatus {

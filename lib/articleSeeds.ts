@@ -14,40 +14,6 @@ export async function getArticleSeed(id: number): Promise<ArticleSeed | null> {
     });
 }
 
-export async function collectArticleSeeds(job: Job, limit: number = 10): Promise<ArticleSeed[]> {
-
-    console.log('>>>> collectArticleSeeds');
-
-    // console.log('>>>> job data', job?.data);
-
-    const data = job?.data ? JSON.parse(job.data) : undefined;
-
-    if (!data) {
-        console.log('no data');
-        return [];
-    }
-
-    // console.log('>>>> data', data);
-
-    const articles: ArticleSeed[] = data.top_news.slice(0, limit).flatMap((news: any) => {
-        return news.news.slice(0, 1).map((data: any) => (
-            {
-                externalId: `${data.id}`,
-                seedData: JSON.stringify(data),
-                seedJob: {
-                    connect: {
-                        id: job.id
-                    }
-                }
-
-            })
-        )
-    }
-    );
-
-    return articles;
-}
-
 export async function createArticleSeed(topNews: TopNews): Promise<ArticleSeed> {
 
     // console.log('>>>> createArticleSeed', articleSeed);
@@ -100,4 +66,40 @@ export async function deleteArticleSeed(articleSeed: ArticleSeed) {
     return await prisma.articleSeed.delete({
         where: { id: articleSeed.id },
     });
+}
+
+
+export async function resetArticleSeed(articleSeed: ArticleSeed) {
+    try {
+        console.log('Resetting article:', articleSeed.id);
+
+        const articleSeedData = articleSeed.seedData ? JSON.parse(articleSeed.seedData) : null;
+
+        if (!articleSeedData) {
+            throw new Error('No seed data available for this article');
+        }
+
+        const updatedArticle = await prisma.article.update({
+            where: { id: articleSeed.id },
+            data: {
+                title: articleSeedData.title,
+                text: articleSeedData.text ?? null,
+                summary: articleSeedData.summary ?? null,
+                url: articleSeedData.url ?? null,
+                image: articleSeedData.image ?? null,
+                video: articleSeedData.video ?? null,
+                author: articleSeedData.author ?? null,
+                category: articleSeedData.category ?? null,
+                language: articleSeedData.language ?? null,
+                sourceCountry: articleSeedData.source_country ?? null,
+            },
+        });
+
+        console.log('Article reset successfully:', updatedArticle.title);
+        // revalidatePath("/articles/seeds");
+        return updatedArticle;
+    } catch (error) {
+        console.error('Error resetting article:', error);
+        throw error; // Re-throw to allow caller to handle the error
+    }
 }

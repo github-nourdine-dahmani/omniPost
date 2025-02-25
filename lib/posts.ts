@@ -29,19 +29,6 @@ export const getAllPosts = cache(async (includeUnpublished = true): Promise<Post
 });
 
 // Cache getPostBySlug function
-export const getPostsByArticleSeed = cache(async (articleSeedId: number): Promise<Post[]> => {
-    const posts = await prisma.post.findMany({
-        where: { articleSeedId },
-        include: {
-            transformation: true,
-        },
-    });
-
-    return posts as Post[];
-});
-
-
-// Cache getPostBySlug function
 export const getPostBySlug = cache(async (slug: string): Promise<Post | null> => {
     const post = await prisma.post.findUnique({
         where: { slug },
@@ -107,6 +94,7 @@ export async function updatePost(
                 // slug: post.slug,
                 summary: post.summary,
                 text: post.text,
+                coverImage: post.coverImage,
                 // published: post.published,
                 url: post.url,
             },

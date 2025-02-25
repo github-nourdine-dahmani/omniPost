@@ -5,9 +5,11 @@ import { DrawerOverlay } from './components/DrawerOverlay';
 import { DrawerContent } from './components/DrawerContent';
 import { ArticleSeedForm } from './components/ArticleSeedForm';
 import { ArticleSeed } from '@prisma/client';
+import { TopNews } from '@/types';
 
 type ArticleSeedDrawerProps = {
     articleSeed: ArticleSeed | null;
+    topNews: TopNews | null;
     isOpen: boolean;
     onClose: () => void;
     refreshSelectedJob: () => void;
@@ -15,6 +17,7 @@ type ArticleSeedDrawerProps = {
 
 export default function ArticleSeedDrawer({
     articleSeed,
+    topNews,
     isOpen,
     onClose,
     refreshSelectedJob,
@@ -33,6 +36,7 @@ export default function ArticleSeedDrawer({
                     {articleSeed && (
                         <ArticleSeedForm
                             articleSeed={articleSeed}
+                            topNews={topNews}
                             onSubmit={handleSubmit}
                             onClose={onClose}
                             isLoading={isLoading}

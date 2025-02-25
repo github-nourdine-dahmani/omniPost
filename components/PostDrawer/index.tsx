@@ -1,6 +1,5 @@
 "use client";
 
-// import { usePostForm } from './hooks/usePostForm';
 import { useEffect, useState } from "react";
 import { DrawerOverlay } from './components/DrawerOverlay';
 import { DrawerContent } from './components/DrawerContent';
@@ -8,7 +7,7 @@ import { PostForm } from './components/PostForm';
 
 import { Transformation, ArticleSeed, Post, PostStatus } from "@prisma/client";
 import { getAllTransformations } from '@/lib/transformations';
-import { createPost, getPostsByArticleSeed, deletePost, updatePost, updatePostStatus } from '@/lib/posts';
+import { createPost, deletePost, updatePost, updatePostStatus } from '@/lib/posts';
 import { usePostForm } from './hooks/usePostForm';
 
 import { Button } from "@/components/ui/button"
@@ -47,18 +46,10 @@ export default function PostDrawer({
         setTransformations(collectedTransformations);
     };
 
-    const fetchPosts = async () => {
-        if (articleSeed?.id) {
-            const collectedPosts = await getPostsByArticleSeed(articleSeed.id);
-            console.log("collectedPosts", collectedPosts);
-            setPosts(collectedPosts);
-        }
-    };
-
     useEffect(() => {
-        console.log("useEffect/PostDrawer");
+        console.log("useEffect/PostDrawer", articleSeed?.posts);
         isOpen && fetchTransformations();
-        isOpen && fetchPosts();
+        isOpen && setPosts(articleSeed?.posts || []);
     }, [articleSeed?.id, isOpen]);
 
     const handleCloseDrawer = () => {
@@ -78,11 +69,11 @@ export default function PostDrawer({
     };
 
     const handleCreatePost = async (transformation: Transformation) => {
+        if (!articleSeed) return;
+
         const createdPost = await createPost(articleSeed, transformation);
-        console.log('>>>> createdPost', createdPost);
         setSelectedPost(createdPost);
         setPosts( prev => [...prev, createdPost]);
-        console.log('>>>> posts', posts);
     };
 
     return (

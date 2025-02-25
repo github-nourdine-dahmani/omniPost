@@ -75,7 +75,6 @@ export async function updateArticle(article: Article) {
     })
 }
 
-
 export async function resetArticle(article: Article) {
     try {
         console.log('Resetting article:', article.id);

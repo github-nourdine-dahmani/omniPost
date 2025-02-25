@@ -26,7 +26,7 @@ export default function TopNewsCard({
                         <div className="w-1/3 min-w-[200px]">
                             <img
                                 src={topNews.image}
-                                alt={topNews.title}
+                                alt={topNews.title ?? ""}
                                 className="object-cover w-full h-full"
                             />
                         </div>
