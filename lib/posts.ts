@@ -68,9 +68,9 @@ export async function createPost(articleSeed: ArticleSeed, transformation?: Tran
             url: articleSeedData.url ?? '',
             language: articleSeedData.language ?? '',
             sourceCountry: articleSeedData.source_country ?? '',
-            transformation: transformation ? {
-                connect: transformation,
-            } : undefined,
+            transformation: {
+                connect: transformation?.id ? { id: transformation.id } : undefined,
+            },
             articleSeed: {
                 connect: {
                     id: articleSeed.id

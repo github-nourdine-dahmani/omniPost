@@ -2,6 +2,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Post } from "@prisma/client";
 import { LinkIcon, CheckIcon } from "@heroicons/react/24/outline";
+import { useState } from "react";
+import { useEffect } from "react";
 
 type PostFormProps = {
     post: Post;
@@ -10,10 +12,16 @@ type PostFormProps = {
 };
 
 export const PostForm: React.FC<PostFormProps> = ({
-    post,
+    post: initialPost,
     onSubmit,
     isLoading,
 }) => {
+    const [post, setPost] = useState<Post>(initialPost)
+
+    useEffect(() => {
+        setPost(initialPost)
+    }, [initialPost])
+
     return (
         <form action={onSubmit}>
             <div className="mb-4">
@@ -35,7 +43,8 @@ export const PostForm: React.FC<PostFormProps> = ({
                     id="image"
                     name="image"
                     placeholder="Image URL"
-                    defaultValue={post?.coverImage ?? ""}
+                    value={post?.coverImage ?? ""}
+                    onChange={(e) => setPost({ ...post, coverImage: e.target.value })}
                 />
             </div>
 
@@ -52,7 +61,8 @@ export const PostForm: React.FC<PostFormProps> = ({
                     id="title"
                     name="title"
                     placeholder="Title"
-                    defaultValue={post?.title ?? ""}
+                    value={post?.title ?? ""}
+                    onChange={(e) => setPost({ ...post, title: e.target.value })}
                 />
             </div>
 
@@ -67,7 +77,8 @@ export const PostForm: React.FC<PostFormProps> = ({
                     id="summary"
                     name="summary"
                     placeholder="Summary"
-                    defaultValue={post?.summary ?? ""}
+                    value={post?.summary ?? ""}
+                    onChange={(e) => setPost({ ...post, summary: e.target.value })}
                     rows={5}
                 />
             </div>
@@ -83,7 +94,8 @@ export const PostForm: React.FC<PostFormProps> = ({
                     id="text"
                     name="text"
                     placeholder="Text"
-                    defaultValue={post?.text ?? ""}
+                    value={post?.text ?? ""}
+                    onChange={(e) => setPost({ ...post, text: e.target.value })}
                     rows={20}
                 />
             </div>

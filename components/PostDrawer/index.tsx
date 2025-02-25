@@ -24,6 +24,7 @@ import { PostsTable } from './components/PostsTable';
 
 type PostDrawerProps = {
     articleSeed: ArticleSeed | null;
+    selectedPost: Post | null;
     isOpen: boolean;
     onClose: () => void;
 };
@@ -31,14 +32,15 @@ type PostDrawerProps = {
 
 export default function PostDrawer({
     articleSeed,
+    selectedPost: selectedPostProp,
     isOpen,
     onClose,
 }: PostDrawerProps) {
     const [transformations, setTransformations] = useState<Transformation[]>([]);
     const [posts, setPosts] = useState<Post[]>(articleSeed?.posts || []);
-    const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+    const [selectedPost, setSelectedPost] = useState<Post | null>(selectedPostProp || null);
 
-    const { handleSubmit, isLoading } = usePostForm(selectedPost);
+    const { handleSubmit, isLoading } = usePostForm(selectedPost, setPosts);
 
     const fetchTransformations = async () => {
         const collectedTransformations = await getAllTransformations();
@@ -47,9 +49,11 @@ export default function PostDrawer({
     };
 
     useEffect(() => {
+        console.log("useEffect/PostDrawer", articleSeed);
         console.log("useEffect/PostDrawer", articleSeed?.posts);
         isOpen && fetchTransformations();
         isOpen && setPosts(articleSeed?.posts || []);
+        isOpen && setSelectedPost(selectedPostProp || null);
     }, [articleSeed?.id, isOpen]);
 
     const handleCloseDrawer = () => {
@@ -75,6 +79,17 @@ export default function PostDrawer({
         setSelectedPost(createdPost);
         setPosts( prev => [...prev, createdPost]);
     };
+
+    const handleSelectPost = (post: Post) => {
+        console.log("handleSelectPost", post);
+        setSelectedPost(post);
+    };
+
+    // const handleSubmit2 = (post: Post) => {
+    //     console.log("handleSubmit2", post);
+    //     handleSubmit();
+    //     setSelectedPost(post);
+    // };
 
     return (
         <div className="relative z-10" aria-labelledby="slide-over-title" role="dialog" aria-modal="true">
@@ -105,7 +120,8 @@ export default function PostDrawer({
 
                         <PostsTable
                             posts={posts || []}
-                            onEditPost={setSelectedPost}
+                            selectedPost={selectedPost}
+                            handleSelectPost={handleSelectPost}
                             onStatusUpdate={handleStatusUpdate}
                             onDeletePost={handleDeletePost}
                         />

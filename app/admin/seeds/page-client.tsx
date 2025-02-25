@@ -10,7 +10,7 @@ import PostDrawer from "@/components/PostDrawer";
 import { useArticleSeedDrawer } from "@/components/ArticleSeedDrawer/hooks/useArticleSeedDrawer";
 import { useTopNewsDrawer } from "@/components/TopNewsDrawer/hooks/useTopNewsDrawer";
 import { usePostDrawer } from "@/components/PostDrawer/hooks/usePostDrawer";
-import { FilterSection } from "./components/FilterSection";
+import { SeedsFilterSection } from "@/components/SeedsFilterSection";
 import { useJobManagement } from "@/hooks/useJobManagement";
 import { TopNews } from "@/types";
 import { deleteArticleSeed } from "@/lib/articleSeeds";
@@ -47,7 +47,7 @@ export default function ArticlesPageClient({ jobs: initialJobs }: { jobs: Job[] 
 
     return (
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex h-[calc(100vh-4rem)]">
-            <FilterSection
+            <SeedsFilterSection
                 jobs={jobs}
                 categories={categories}
                 selectedJob={selectedJob}
@@ -134,6 +134,7 @@ export default function ArticlesPageClient({ jobs: initialJobs }: { jobs: Job[] 
 
             <PostDrawer
                 articleSeed={selectedArticleSeed}
+                selectedPost={null}
                 isOpen={isPostDrawerOpen}
                 onClose={closePostDrawer}
             />

@@ -1,6 +1,6 @@
 "use server";
 
-import { PrismaClient, Job, JobStatus, JobType } from "@prisma/client";
+import { PrismaClient, Transformation, TransformationType } from "@prisma/client";
 import { fetchTopNews } from "@/lib/worldnewsapi";
 import { refineArticles } from "./article";
 
@@ -82,7 +82,7 @@ export async function updateJobStatus(job: Job, status: JobStatus, data: string 
 }
 
 
-export async function getJobsByType(jobType: JobType): Promise<Job[]> {
+export async function getTransformationByType(jobType: JobType): Promise<Job[]> {
     const results = await prisma.job.findMany({
         where: { type: jobType },
         include: {
@@ -102,10 +102,10 @@ export async function getJobsByType(jobType: JobType): Promise<Job[]> {
     return results;
 }
 
-export async function getJob(jobId: number): Promise<Job | null> {
-    const result = await prisma.job.findUnique({
-        where: { id: jobId },
-        include: { articleSeeds: true }
+export async function getTransformation(transformationId: number): Promise<Transformation | null> {
+    const result = await prisma.transformation.findUnique({
+        where: { id: transformationId },
+        include: { posts: true }
     });
 
     return result;

@@ -2,7 +2,7 @@ import { Job } from "@prisma/client";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 
-interface FilterSectionProps {
+interface SeedsFilterSectionProps {
     jobs: Job[];
     categories: string[];
     selectedJob: Job;
@@ -11,14 +11,14 @@ interface FilterSectionProps {
     onCategoryToggle: (category: string) => void;
 }
 
-export const FilterSection = ({
+export const SeedsFilterSection = ({
     jobs,
     categories,
     selectedJob,
     selectedCategories,
     onJobSelect,
     onCategoryToggle,
-}: FilterSectionProps) => (
+}: SeedsFilterSectionProps) => (
     <div className="w-1/4 pr-4 border-r overflow-y-auto">
         <h2 className="text-xl font-semibold mb-4 sticky top-0 bg-white z-10">
             Filters

@@ -4,6 +4,7 @@ import { updatePost } from '@/lib/posts';
 
 export const usePostForm = (
     post: Post | null,
+    setPosts: React.Dispatch<React.SetStateAction<Post[]>>,
 ) => {
     const [isLoading, setIsLoading] = useState(false);
 
@@ -30,7 +31,8 @@ export const usePostForm = (
 
         try {
             setIsLoading(true);
-            await updatePost(postToPersist);
+            const updatedPost = await updatePost(postToPersist);
+            setPosts(prev => prev.map(p => p.id === updatedPost.id ? updatedPost : p));
         } catch (error) {
             console.error("Error persisting article:", error);
         } finally {

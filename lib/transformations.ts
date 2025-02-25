@@ -8,6 +8,19 @@ const prisma = new PrismaClient();
 // Cache getAllTransformations function
 export const getAllTransformations = cache(async (): Promise<Transformation[]> => {
     const transformations = await prisma.transformation.findMany({
+        include: { posts: {
+            include: {
+                articleSeed: {
+                    include: {
+                        posts: {
+                            include: {
+                                transformation: true
+                            }
+                        }
+                    }
+                },  
+            } 
+        } },
         orderBy: {
             createdAt: "desc",
         },
@@ -15,6 +28,17 @@ export const getAllTransformations = cache(async (): Promise<Transformation[]> =
 
     return transformations as Transformation[];
 });
+
+
+export async function getTransformation(transformationId: number): Promise<Transformation | null> {
+    const result = await prisma.transformation.findUnique({
+        where: { id: transformationId },
+        include: { posts: true }
+    });
+
+    return result;
+}
+
 
 // Delete a transformation
 export async function deleteTransformation(id: number) {
