@@ -12,7 +12,7 @@ type ArticleSeedDrawerProps = {
     topNews: TopNews | null;
     isOpen: boolean;
     onClose: () => void;
-    refreshSelectedJob: () => void;
+    refreshParent: () => void;
 };
 
 export default function ArticleSeedDrawer({
@@ -20,11 +20,11 @@ export default function ArticleSeedDrawer({
     topNews,
     isOpen,
     onClose,
-    refreshSelectedJob,
+    refreshParent,
 }: ArticleSeedDrawerProps) {
     const { handleSubmit, isLoading } = useArticleSeedForm(
         articleSeed,
-        refreshSelectedJob,
+        refreshParent,
         onClose
     );
 

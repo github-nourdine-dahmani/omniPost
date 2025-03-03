@@ -1,27 +1,31 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { Transformation, PostStatus, Post } from "@prisma/client";
+import { Transformation, PostPublishStatus, PostTransformationStatus, Post } from "@prisma/client";
 
 export const usePostManagement = (selectedTransformation: Transformation) => {
     const [posts, setPosts] = useState<Post[]>(selectedTransformation.posts || []);
     // const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-    const [activeView, setActiveView] = useState<"all" | "draft" | "queued" | "published">("all");
+    const [selectedPublishStatus, setSelectedPublishStatus] = useState<PostPublishStatus[]>([]);
+    const [activeView, setActiveView] = useState<"all" | "discarded" | "queued" | "processing" | "completed" | "failed">("all");
 
     useEffect(() => {
         setPosts(selectedTransformation.posts || []);
     }, [selectedTransformation]);
 
     const filteredPosts = useMemo(() => {
+        console.log('filteredPosts', selectedPublishStatus);
         return posts.filter(
             (post) =>
-                // (selectedCategories.length === 0 ||
-                //     post.category === null ||
-                //     selectedCategories.includes(post.category)) &&
+                (
+                    selectedPublishStatus.length === 0 ||
+                    selectedPublishStatus.includes(post.publishStatus)) &&
                 (activeView === "all" ||
-                    (activeView === "draft" && post.status === PostStatus.DRAFT) ||
-                    (activeView === "queued" && post.status === PostStatus.QUEUED) ||
-                    (activeView === "published" && post.status === PostStatus.PUBLISHED))
+                    (activeView === "discarded" && post.transformationStatus === PostTransformationStatus.DISCARDED) ||
+                    (activeView === "queued" && post.transformationStatus === PostTransformationStatus.QUEUED) ||
+                    (activeView === "processing" && post.transformationStatus === PostTransformationStatus.PROCESSING) ||
+                    (activeView === "completed" && post.transformationStatus === PostTransformationStatus.COMPLETED) ||
+                    (activeView === "failed" && post.transformationStatus === PostTransformationStatus.FAILED))
         );
-    }, [posts, activeView]);
+    }, [posts, activeView, selectedPublishStatus]);
 
     // const categories = useMemo(
     //     () =>
@@ -35,22 +39,27 @@ export const usePostManagement = (selectedTransformation: Transformation) => {
     //     [topNews]
     // );
 
-    // const handleCategoryToggle = useCallback((category: string) => {
-    //     setSelectedCategories((prev) =>
-    //         prev.includes(category)
-    //             ? prev.filter((c) => c !== category)
-    //             : [...prev, category]
-    //     );
-    // }, []);
+    const handlePublishStatusToggle = useCallback((status: PostPublishStatus) => {
+        console.log("handlePublishStatusToggle", status);
+        console.log(selectedPublishStatus);
+        setSelectedPublishStatus((prev) =>
+            prev.includes(status)
+                ? prev.filter((c) => c !== status)
+                : [...prev, status]
+        );
+    }, [selectedPublishStatus]);
 
     return {
         posts,
+        setPosts,
         // categories,
         filteredPosts,
         // selectedCategories,
         activeView,
         // setSelectedCategories,
         setActiveView,
+        selectedPublishStatus,
         // handleCategoryToggle,
+        handlePublishStatusToggle
     };
 };

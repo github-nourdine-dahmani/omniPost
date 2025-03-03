@@ -21,16 +21,13 @@ export const SeedsFilterSection = ({
 }: SeedsFilterSectionProps) => (
     <div className="w-1/4 pr-4 border-r overflow-y-auto">
         <h2 className="text-xl font-semibold mb-4 sticky top-0 bg-white z-10">
-            Filters
+            Seeds
         </h2>
 
         <div>
             <h3 className="text-lg font-medium mb-2">Ingestions</h3>
             <ScrollArea className="h-72 rounded-md border">
                 <div className="p-2">
-                    <h4 className="mb-4 text-sm font-medium leading-none">
-                        Ingestions
-                    </h4>
                     {jobs.map((job, index) => (
                         <div key={index}>
                             <div
@@ -41,12 +38,12 @@ export const SeedsFilterSection = ({
                                 }`}
                                 onClick={() => onJobSelect(job)}
                             >
-                                {new Intl.DateTimeFormat("fr-FR", {
+                                {job.type} - {new Intl.DateTimeFormat("fr-FR", {
                                     day: "2-digit",
                                     month: "2-digit",
                                     year: "numeric",
-                                    hour: "2-digit",
-                                    minute: "2-digit",
+                                    // hour: "2-digit",
+                                    // minute: "2-digit",
                                 }).format(job.createdAt)}
 
                                 <span className="ml-5 bg-blue-100 text-blue-800 text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded-sm dark:bg-gray-700 dark:text-blue-400 border border-blue-400">
@@ -65,7 +62,7 @@ export const SeedsFilterSection = ({
                                             fillRule="evenodd"
                                         />
                                     </svg>
-                                    {job.articleSeeds.length} onboarded
+                                    {job.articleSeeds.length} seeds -  {job.articleSeeds.reduce((acc, curr) => acc + (curr.posts?.length ?? 0), 0)} posts
                                 </span>
                                 {/* <Badge className="ml-2">{job.articles.length} saved articles</Badge> */}
                             </div>

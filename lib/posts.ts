@@ -1,6 +1,6 @@
 "use server";
 
-import { PrismaClient, Post, PostStatus, Transformation, ArticleSeed } from "@prisma/client";
+import { PrismaClient, Post, PostPublishStatus, PostTransformationStatus, Transformation, ArticleSeed } from "@prisma/client";
 import { cache } from "react";
 import { PostWithTransformation } from '@/lib/prisma';
 import { revalidatePath } from "next/cache";
@@ -13,7 +13,7 @@ const prisma = new PrismaClient();
 // Cache getAllPosts function
 export const getAllPosts = cache(async (includeUnpublished = true): Promise<Post[]> => {
     const posts = await prisma.post.findMany({
-        where: includeUnpublished ? {} : { published: true },
+        where: includeUnpublished ? {} : { publishStatus: PostPublishStatus.PUBLISHED },
         include: {
             author: true,
             category: true,
@@ -89,14 +89,36 @@ export async function updatePost(
         const persistedPost = await prisma.post.update({
             where: { id: post.id },
             data: {
-                // ...post,
                 title: post.title,
                 // slug: post.slug,
                 summary: post.summary,
                 text: post.text,
                 coverImage: post.coverImage,
-                // published: post.published,
                 url: post.url,
+                transformationStatus: post.transformationStatus,
+                publishStatus: post.publishStatus
+            },
+            include: { transformation: true }
+        });
+
+        return persistedPost;
+    } catch (error) {
+        console.log(">>>> error", error);
+        throw new Error("Failed to persist post", { cause: error });
+    }
+}
+
+
+export async function updatePostPublishStatus(
+    post: Post,
+    publishStatus: PostPublishStatus
+): Promise<Post> {
+
+    try {
+        const persistedPost = await prisma.post.update({
+            where: { id: post.id },
+            data: {
+                publishStatus: publishStatus,
             },
         });
 
@@ -108,16 +130,16 @@ export async function updatePost(
 }
 
 
-export async function updatePostStatus(
+export async function updatePostTransformationStatus(
     post: Post,
-    status: PostStatus
+    transformationStatus: PostTransformationStatus
 ): Promise<Post> {
 
     try {
         const persistedPost = await prisma.post.update({
             where: { id: post.id },
             data: {
-                status: status,
+                transformationStatus: transformationStatus,
             },
         });
 

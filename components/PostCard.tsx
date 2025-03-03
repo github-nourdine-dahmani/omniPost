@@ -1,4 +1,4 @@
-import { Post } from "@prisma/client";
+import { Post, PostPublishStatus, PostTransformationStatus } from "@prisma/client";
 import { PenIcon } from "lucide-react";
 
 
@@ -33,6 +33,11 @@ export default function PostCard({
                     )}
                     <div className="p-6 flex-grow flex flex-col justify-between w-2/3">
                         <div>
+                            {post.transformationStatus === PostTransformationStatus.QUEUED && <span className="bg-purple-100 text-purple-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-sm dark:bg-gray-700 dark:text-purple-400 border border-purple-400">Queued</span>}
+                            {post.transformationStatus === PostTransformationStatus.DISCARDED && <span className="bg-gray-100 text-gray-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-sm dark:bg-gray-700 dark:text-gray-400 border border-gray-500">Discarded</span>}
+                            {post.transformationStatus === PostTransformationStatus.COMPLETED && <span className="bg-green-100 text-green-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-sm dark:bg-gray-700 dark:text-green-400 border border-green-400">Completed</span>}
+                            {post.transformationStatus === PostTransformationStatus.FAILED && <span className="bg-red-100 text-red-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-sm dark:bg-gray-700 dark:text-red-400 border border-red-400">Failed</span>}
+                            {post.transformationStatus === PostTransformationStatus.PROCESSING && <span className="bg-yellow-100 text-yellow-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-sm dark:bg-gray-700 dark:text-yellow-300 border border-yellow-300">Processing</span>}
                             <h2 className="text-xl font-semibold text-gray-900 hover:text-gray-700 mb-2">
                                 {post.title}
                             </h2>
@@ -70,6 +75,53 @@ export default function PostCard({
                         </div>
                     </div>
                 </div>
+                {post.publishStatus === PostPublishStatus.PUBLISHED &&
+                    <div className="flex justify-end">
+                        <strong
+                            className="-me-[2px] -mb-[2px] inline-flex items-center gap-1 rounded-ss-xl rounded-ee-xl bg-green-600 px-3 py-1.5 text-white"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="size-4"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
+                                />
+                            </svg>
+
+                            <span className="text-[10px] font-medium sm:text-xs">Published !</span>
+                        </strong>
+                    </div>}
+
+                {post.publishStatus === PostPublishStatus.DRAFT &&
+                    <div className="flex justify-end">
+                        <strong
+                            className="-me-[2px] -mb-[2px] inline-flex items-center gap-1 rounded-ss-xl rounded-ee-xl bg-gray-600 px-3 py-1.5 text-white"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="size-4"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
+                                />
+                            </svg>
+
+                            <span className="text-[10px] font-medium sm:text-xs">Draft</span>
+                        </strong>
+                    </div>}
             </article>
         </div>
     );

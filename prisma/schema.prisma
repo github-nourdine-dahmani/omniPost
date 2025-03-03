@@ -27,18 +27,24 @@ model Post {
   language         String?
   sourceCountry    String?
   images           Image[]
-  status           PostStatus      @default(DRAFT)
+  transformationStatus           PostTransformationStatus      @default(DISCARDED)
+  publishStatus           PostPublishStatus      @default(DRAFT)
   transformation   Transformation? @relation("TransformationToPost", fields: [transformationId], references: [id])
   transformationId Int?
   articleSeed      ArticleSeed?    @relation("ArticleSeedToPost", fields: [articleSeedId], references: [id])
   articleSeedId    Int?
 }
 
-enum PostStatus {
-  DRAFT
+enum PostTransformationStatus {
+  DISCARDED
   QUEUED
   PROCESSING
   COMPLETED
+  FAILED
+}
+
+enum PostPublishStatus {
+  DRAFT
   PUBLISHED
   ARCHIVED
 }
@@ -106,8 +112,7 @@ enum JobStatus {
 
 enum JobType {
   FETCH_TOP_NEWS
-  REFINE_ARTICLES
-  TRANSFORM_ARTICLES
+  SEARCH_NEWS
 }
 
 model Job {

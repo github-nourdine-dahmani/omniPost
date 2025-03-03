@@ -1,4 +1,4 @@
-import { Job } from "@prisma/client";
+import { Job, PostPublishStatus } from "@prisma/client";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Transformation } from "@prisma/client";
@@ -7,40 +7,36 @@ interface PostsFilterSectionProps {
     transformations: Transformation[];
     // categories: string[];
     selectedTransformation: Transformation;
-    // selectedCategories: string[];
+    selectedPublishStatus: PostPublishStatus[];
     onTransformationSelect: (transformation: Transformation) => void;
-    // onCategoryToggle: (category: string) => void;
+    onPublishStatusToggle: (status: PostPublishStatus) => void;
 }
 
 export const PostsFilterSection = ({
     transformations,
     // categories,
     selectedTransformation,
-    // selectedCategories,
+    selectedPublishStatus,
     onTransformationSelect,
     // onTransformationSelect,
-    // onCategoryToggle,
+    onPublishStatusToggle,
 }: PostsFilterSectionProps) => (
     <div className="w-1/4 pr-4 border-r overflow-y-auto">
         <h2 className="text-xl font-semibold mb-4 sticky top-0 bg-white z-10">
-            Filters
+            Posts
         </h2>
 
         <div>
             <h3 className="text-lg font-medium mb-2">Transformations</h3>
             <ScrollArea className="h-72 rounded-md border">
                 <div className="p-2">
-                    <h4 className="mb-4 text-sm font-medium leading-none">
-                        Transformations
-                    </h4>
                     {transformations.map((transformation, index) => (
                         <div key={index}>
                             <div
-                                className={`text-sm flex items-center space-x-2 cursor-pointer hover:bg-gray-100 ${
-                                    selectedTransformation.id === transformation.id
-                                        ? "bg-gray-200"
-                                        : ""
-                                }`}
+                                className={`text-sm flex items-center space-x-2 cursor-pointer hover:bg-gray-100 ${selectedTransformation.id === transformation.id
+                                    ? "bg-gray-200"
+                                    : ""
+                                    }`}
                                 onClick={() => onTransformationSelect(transformation)}
                             >
                                 {transformation.name}
@@ -69,6 +65,17 @@ export const PostsFilterSection = ({
                     ))}
                 </div>
             </ScrollArea>
+            <h3 className="text-lg font-medium mb-2">Status</h3>
+            <div className="flex flex-col flex-wrap">
+            {Object.keys(PostPublishStatus).map((status, index) => (
+                <label key={index} className="inline-flex items-center mb-5 cursor-pointer">
+                <input type="checkbox" value="" className="sr-only peer" checked={selectedPublishStatus.includes(status as PostPublishStatus)}
+                        onChange={() => onPublishStatusToggle(status as PostPublishStatus)} />
+                    <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:w-5 after:h-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600 dark:peer-checked:bg-blue-600"></div>
+                    <span className="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">{status}</span>
+                </label>
+            ))}
+            </div>
         </div>
     </div>
 );

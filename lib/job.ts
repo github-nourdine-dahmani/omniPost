@@ -1,7 +1,7 @@
 "use server";
 
 import { PrismaClient, Job, JobStatus, JobType } from "@prisma/client";
-import { fetchTopNews } from "@/lib/worldnewsapi";
+import { fetchTopNews, searchNews } from "@/lib/worldnewsapi";
 import { refineArticles } from "./article";
 
 const prisma = new PrismaClient();
@@ -58,8 +58,8 @@ export async function runJob(job: Job): Promise<Job> {
             case JobType.FETCH_TOP_NEWS:
                 data = await fetchTopNews();
                 break;
-            case JobType.REFINE_ARTICLES:
-                data = await refineArticles();
+            case JobType.SEARCH_NEWS:
+                data = await searchNews();
                 break;
             default:
                 throw new Error(`Invalid job type: ${job.type}`);
@@ -82,9 +82,12 @@ export async function updateJobStatus(job: Job, status: JobStatus, data: string 
 }
 
 
-export async function getJobsByType(jobType: JobType): Promise<Job[]> {
+export async function getJobsBy(params: { jobType: JobType | null, jobStatus: JobStatus | null }): Promise<Job[]> {
     const results = await prisma.job.findMany({
-        where: { type: jobType },
+        where: {
+            type: params.jobType ?? undefined,
+            status: params.jobStatus ?? undefined
+        },
         include: {
             articleSeeds: {
                 include: {
@@ -105,7 +108,15 @@ export async function getJobsByType(jobType: JobType): Promise<Job[]> {
 export async function getJob(jobId: number): Promise<Job | null> {
     const result = await prisma.job.findUnique({
         where: { id: jobId },
-        include: { articleSeeds: true }
+        include: { articleSeeds: {
+            include: {
+                posts: {
+                    include: {
+                        transformation: true
+                    }
+                }
+            }
+        } }
     });
 
     return result;

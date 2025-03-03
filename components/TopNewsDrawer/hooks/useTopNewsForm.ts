@@ -4,7 +4,7 @@ import { createArticleSeed } from '@/lib/articleSeeds';
 
 export const useTopNewsForm = (
     topNews: TopNews | null,
-    refreshSelectedJob: () => void,
+    refreshParent: () => void,
     onClose: () => void,
 ) => {
     const [isLoading, setIsLoading] = useState(false);
@@ -23,7 +23,7 @@ export const useTopNewsForm = (
         try {
             setIsLoading(true);
             await createArticleSeed(topNewsToOnboard);
-            refreshSelectedJob();
+            refreshParent();
             onClose();
         } catch (error) {
             console.error("Error persisting article:", error);

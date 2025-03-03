@@ -46,7 +46,7 @@ export default function ArticlesPageClient({ jobs: initialJobs }: { jobs: Job[] 
     }, [refreshSelectedJob]);
 
     return (
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex h-[calc(100vh-4rem)]">
+        <main className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex h-[calc(100vh-4rem)]">
             <SeedsFilterSection
                 jobs={jobs}
                 categories={categories}
@@ -58,9 +58,6 @@ export default function ArticlesPageClient({ jobs: initialJobs }: { jobs: Job[] 
 
             <div className="w-3/4 pl-4 overflow-y-auto">
                 <div className="p-2 sticky top-0 bg-white z-10">
-                    <h1 className="text-3xl font-bold text-gray-900">
-                        Latest Top News
-                    </h1>
                     <ToggleGroup
                         type="single"
                         className="flex justify-center mb-4"
@@ -122,14 +119,14 @@ export default function ArticlesPageClient({ jobs: initialJobs }: { jobs: Job[] 
                 topNews={selectedTopNews}
                 isOpen={isArticleSeedDrawerOpen}
                 onClose={closeArticleSeedDrawer}
-                refreshSelectedJob={() => refreshSelectedJob()}
+                refreshParent={() => refreshSelectedJob()}
             />
 
             <TopNewsDrawer
                 topNews={selectedTopNews}
                 isOpen={isTopNewsDrawerOpen}
                 onClose={closeTopNewsDrawer}
-                refreshSelectedJob={() => refreshSelectedJob()}
+                refreshParent={refreshSelectedJob}
             />
 
             <PostDrawer
@@ -137,6 +134,7 @@ export default function ArticlesPageClient({ jobs: initialJobs }: { jobs: Job[] 
                 selectedPost={null}
                 isOpen={isPostDrawerOpen}
                 onClose={closePostDrawer}
+                refreshParent={refreshSelectedJob}
             />
 
         </main>

@@ -1,11 +1,31 @@
 "use server";
 
 import { RawArticleSeed, TopNews } from "@/types";
-import { PrismaClient, Job, Article, ArticleSeed } from "@prisma/client";
+import { PrismaClient, Job, ArticleSeed } from "@prisma/client";
 import { randomUUID } from "crypto";
 import slugify from "slugify";
 
 const prisma = new PrismaClient();
+
+//politics, sports, business, technology, entertainment, health, science, lifestyle, travel, culture, education, environment, other
+
+export async function searchNews(text: string | null, language: string | null, sourceCountry: string | null, categories: string[]) {
+    console.log(">>>> searchNews");
+
+    const res = await fetch(
+        // `https://api.worldnewsapi.com/top-news?text=${text}&source-country=${sourceCountry}&language=${language}&categories=${categories.join(",")}&api-key=${process.env.NEXT_PUBLIC_WORLDNEWSAPI_KEY}`
+        `https://api.worldnewsapi.com/top-news?source-country=fr&language=fr&categories=lifestyle&api-key=${process.env.NEXT_PUBLIC_WORLDNEWSAPI_KEY}`
+    );
+
+    // if(!res.ok) {
+    //     console.log(res.message)
+    //     throw new Error('Failed to fetch top news');
+    // }
+
+    const data = await res.json();
+
+    return data;
+}
 
 export async function fetchTopNews() {
     console.log(">>>> fetchTopNews");

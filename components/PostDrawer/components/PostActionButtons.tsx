@@ -1,4 +1,4 @@
-import { Post, PostStatus } from "@prisma/client";
+import { Post, PostPublishStatus, PostTransformationStatus } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { PenIcon } from "lucide-react";
 import {
@@ -12,11 +12,13 @@ import {
 interface PostActionButtonsProps {
     post: Post;
     handleSelectPost: (post: Post) => void;
-    onStatusUpdate: (post: Post, status: PostStatus) => void;
+    onPublishStatusUpdate: (post: Post, status: PostPublishStatus) => void;
+    onTransformationStatusUpdate: (post: Post, status: PostTransformationStatus) => void;
     onDelete: (post: Post) => Promise<void>;
+    onProcessPostTransformation: (post: Post) => Promise<void>;
 }
 
-export function PostActionButtons({ post, handleSelectPost, onStatusUpdate, onDelete }: PostActionButtonsProps) {
+export function PostActionButtons({ post, handleSelectPost, onPublishStatusUpdate, onTransformationStatusUpdate, onDelete, onProcessPostTransformation }: PostActionButtonsProps) {
     return (
         <>
             <button
@@ -35,17 +37,21 @@ export function PostActionButtons({ post, handleSelectPost, onStatusUpdate, onDe
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => onStatusUpdate(post, PostStatus.QUEUED)}>
+                    <DropdownMenuItem onClick={() => onTransformationStatusUpdate(post, PostTransformationStatus.QUEUED)}>
                         Add To Process Queue
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => onStatusUpdate(post, PostStatus.PUBLISHED)}>
+                    <DropdownMenuItem onClick={() => onPublishStatusUpdate(post, PostPublishStatus.PUBLISHED)}>
                         Publish Post
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => onStatusUpdate(post, PostStatus.DRAFT)}>
+                    <DropdownMenuItem onClick={() => onPublishStatusUpdate(post, PostPublishStatus.DRAFT)}>
                         Set as Draft
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => onStatusUpdate(post, PostStatus.ARCHIVED)}>
+                    <DropdownMenuItem onClick={() => onPublishStatusUpdate(post, PostPublishStatus.ARCHIVED)}>
                         Archive
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem onClick={() => onProcessPostTransformation(post)}>
+                        Process Transformation
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={() => onDelete(post)}>

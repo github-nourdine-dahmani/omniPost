@@ -5,10 +5,11 @@ import { DrawerOverlay } from './components/DrawerOverlay';
 import { DrawerContent } from './components/DrawerContent';
 import { PostForm } from './components/PostForm';
 
-import { Transformation, ArticleSeed, Post, PostStatus } from "@prisma/client";
+import { Transformation, ArticleSeed, Post, PostPublishStatus, PostTransformationStatus } from "@prisma/client";
 import { getAllTransformations } from '@/lib/transformations';
-import { createPost, deletePost, updatePost, updatePostStatus } from '@/lib/posts';
+import { createPost, deletePost, updatePost, updatePostPublishStatus, updatePostTransformationStatus } from '@/lib/posts';
 import { usePostForm } from './hooks/usePostForm';
+import { processPost } from "@/lib/transformations";
 
 import { Button } from "@/components/ui/button"
 import {
@@ -27,6 +28,7 @@ type PostDrawerProps = {
     selectedPost: Post | null;
     isOpen: boolean;
     onClose: () => void;
+    refreshParent: () => void;
 };
 
 
@@ -35,6 +37,7 @@ export default function PostDrawer({
     selectedPost: selectedPostProp,
     isOpen,
     onClose,
+    refreshParent
 }: PostDrawerProps) {
     const [transformations, setTransformations] = useState<Transformation[]>([]);
     const [posts, setPosts] = useState<Post[]>(articleSeed?.posts || []);
@@ -62,14 +65,24 @@ export default function PostDrawer({
         onClose();
     }
 
-    const handleStatusUpdate = async (post: Post, status: PostStatus) => {
-        await updatePostStatus(post, status);
-        setPosts(posts.map((p) => p.id === post.id ? { ...p, status: status } : p));
+    const handlePublishStatusUpdate = async (post: Post, status: PostPublishStatus) => {
+        await updatePostPublishStatus(post, status);
+        const updatedPost = { ...post, publishStatus: status }
+        setPosts(posts.map((p) => p.id === post.id ? updatedPost : p));
+        refreshParent();
+    };
+
+    const handleTransformationStatusUpdate = async (post: Post, status: PostTransformationStatus) => {
+        await updatePostTransformationStatus(post, status);
+        const updatedPost = { ...post, transformationStatus: status }
+        setPosts(posts.map((p) => p.id === post.id ? updatedPost : p));
+        refreshParent();
     };
 
     const handleDeletePost = async (post: Post) => {
         await deletePost(post);
         setPosts(posts.filter((p) => p.id !== post.id));
+        refreshParent();
     };
 
     const handleCreatePost = async (transformation: Transformation) => {
@@ -78,6 +91,14 @@ export default function PostDrawer({
         const createdPost = await createPost(articleSeed, transformation);
         setSelectedPost(createdPost);
         setPosts( prev => [...prev, createdPost]);
+        refreshParent();
+    };
+
+    const handleProcessPostTransformation = async (post: Post) => {
+        const processedPost = await processPost(post);
+        setPosts(posts.map((p) => p.id === post.id ? processedPost : p));
+        setSelectedPost(processedPost);
+        refreshParent();
     };
 
     const handleSelectPost = (post: Post) => {
@@ -122,7 +143,9 @@ export default function PostDrawer({
                             posts={posts || []}
                             selectedPost={selectedPost}
                             handleSelectPost={handleSelectPost}
-                            onStatusUpdate={handleStatusUpdate}
+                            onPublishStatusUpdate={handlePublishStatusUpdate}
+                            onTransformationStatusUpdate={handleTransformationStatusUpdate}
+                            onProcessPostTransformation={handleProcessPostTransformation}
                             onDeletePost={handleDeletePost}
                         />
                     </div>

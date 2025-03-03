@@ -10,18 +10,18 @@ type TopNewsDrawerProps = {
     topNews: TopNews | null;
     isOpen: boolean;
     onClose: () => void;
-    refreshSelectedJob: () => void;
+    refreshParent: () => void;
 };
 
 export default function TopNewsDrawer({
     topNews,
     isOpen,
     onClose,
-    refreshSelectedJob,
+    refreshParent,
 }: TopNewsDrawerProps) {
     const { handleSubmit, isLoading } = useTopNewsForm(
         topNews,
-        refreshSelectedJob,
+        refreshParent,
         onClose,
     );
 

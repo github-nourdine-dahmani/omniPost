@@ -4,7 +4,7 @@ import { editArticleSeed } from '@/lib/articleSeeds';
 
 export const useArticleSeedForm = (
     articleSeed: ArticleSeed | null,
-    refreshSelectedJob: () => void,
+    refreshParent: () => void,
     onClose: () => void,
 ) => {
     const [isLoading, setIsLoading] = useState(false);
@@ -30,7 +30,7 @@ export const useArticleSeedForm = (
         try {
             setIsLoading(true);
             await editArticleSeed(articleSeedToPersist);
-            refreshSelectedJob();
+            refreshParent();
             onClose();
         } catch (error) {
             console.error("Error persisting article:", error);

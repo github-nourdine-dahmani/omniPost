@@ -1,5 +1,5 @@
-import { getJobsByType } from "@/lib/job";
-import { JobType } from "@prisma/client";
+import { getJobsBy } from "@/lib/job";
+import { JobType, JobStatus } from "@prisma/client";
 
 import PageClient from './page-client';
 
@@ -14,7 +14,10 @@ export const revalidate = 3600; // revalidate every hour
 
 export default async function Seeds() {
 
-    const jobs = await getJobsByType(JobType.FETCH_TOP_NEWS);
+    const jobs = await getJobsBy({
+        jobType: null,
+        jobStatus: JobStatus.COMPLETED
+    });
 
     return (
         <>
